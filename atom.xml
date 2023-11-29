@@ -176,13 +176,15 @@ unluac 反编译一下&lt;/p&gt;
 </content>
         <category term="ctf" scheme="https://yurogod.github.io/categories/ctf/" />
         <category term="浙江省大学生网络与信息安全竞赛" scheme="https://yurogod.github.io/tags/%E6%B5%99%E6%B1%9F%E7%9C%81%E5%A4%A7%E5%AD%A6%E7%94%9F%E7%BD%91%E7%BB%9C%E4%B8%8E%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B/" />
-        <updated>2023-10-21T16:17:21.000Z</updated>
+        <updated>2023-11-03T16:17:21.000Z</updated>
     </entry>
     <entry>
         <id>https://yurogod.github.io/notice/index/</id>
         <title>公告</title>
         <link rel="alternate" href="https://yurogod.github.io/notice/index/"/>
-        <content type="html">&lt;h1 id=&#34;告示&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#告示&#34;&gt;#&lt;/a&gt; 告示&lt;/h1&gt;
+        <content type="html">&lt;h1 id=&#34;new&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#new&#34;&gt;#&lt;/a&gt; New&lt;/h1&gt;
+&lt;p&gt;&lt;span class=&#34;pink&#34;&gt;目前只会发一些赛事的 wp (前提是我会做 hhh)&lt;/span&gt;&lt;/p&gt;
+&lt;h1 id=&#34;告示&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#告示&#34;&gt;#&lt;/a&gt; 告示&lt;/h1&gt;
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;由于一系列原因，在访问本博客时会遇到一系列问题，这一系列问题还请各位多多包涵啦，后面有空会慢慢优化的😘&lt;/p&gt;
