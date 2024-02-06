@@ -7,12 +7,15 @@
         <language>zh-CN</language>
         <pubDate>Sat, 04 Nov 2023 19:01:23 +0800</pubDate>
         <lastBuildDate>Sat, 04 Nov 2023 19:01:23 +0800</lastBuildDate>
+        <category>ctf</category>
         <category>NewStarCTF</category>
         <category>浙江省大学生网络与信息安全竞赛</category>
+        <category>BeginCTF</category>
         <item>
             <guid isPermalink="true">https://yurogod.github.io/ctf/events/NewStarCTF-2023/</guid>
-            <title>NewStarCTF-2023 WP</title>
+            <title>NewStarCTF-2023 Writeup</title>
             <link>https://yurogod.github.io/ctf/events/NewStarCTF-2023/</link>
+            <category>ctf</category>
             <category>NewStarCTF</category>
             <pubDate>Sat, 04 Nov 2023 19:01:23 +0800</pubDate>
             <description><![CDATA[ &lt;h1 id=&#34;newstarctf-2023&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#newstarctf-2023&#34;&gt;#&lt;/a&gt; NewStarCTF-2023&lt;/h1&gt;
