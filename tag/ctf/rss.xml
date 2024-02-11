@@ -9,8 +9,11 @@
         <lastBuildDate>Mon, 05 Feb 2024 15:42:23 +0800</lastBuildDate>
         <category>ctf</category>
         <category>BeginCTF</category>
-        <category>NewStarCTF</category>
         <category>浙江省大学生网络与信息安全竞赛</category>
+        <category>NewStarCTF</category>
+        <category>reverse</category>
+        <category>game</category>
+        <category>il2cpp</category>
         <item>
             <guid isPermalink="true">https://yurogod.github.io/ctf/events/BeginCTF-2024/</guid>
             <title>BeginCTF-2024 Writeup</title>
@@ -20,6 +23,7 @@
             <pubDate>Mon, 05 Feb 2024 15:42:23 +0800</pubDate>
             <description><![CDATA[ &lt;h1 id=&#34;beginctf-2024-writeup&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#beginctf-2024-writeup&#34;&gt;#&lt;/a&gt; BeginCTF 2024 Writeup&lt;/h1&gt;
 &lt;h2 id=&#34;前言&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#前言&#34;&gt;#&lt;/a&gt; 前言&lt;/h2&gt;
+&lt;p&gt;被我吃了&lt;/p&gt;
 &lt;h2 id=&#34;misc&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#misc&#34;&gt;#&lt;/a&gt; Misc&lt;/h2&gt;
 &lt;h3 id=&#34;下一站上岸&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#下一站上岸&#34;&gt;#&lt;/a&gt; 下一站上岸&lt;/h3&gt;
 &lt;p&gt;写出两个图形的接触点个数，得到  &lt;code&gt;221022201122120120111011110222012101&lt;/code&gt;&lt;/p&gt;

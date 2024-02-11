@@ -6,8 +6,11 @@
     <updated>2023-11-04T11:01:23.000Z</updated>
     <category term="ctf" />
     <category term="BeginCTF" />
-    <category term="NewStarCTF" />
     <category term="浙江省大学生网络与信息安全竞赛" />
+    <category term="NewStarCTF" />
+    <category term="reverse" />
+    <category term="game" />
+    <category term="il2cpp" />
     <entry>
         <id>https://yurogod.github.io/ctf/events/NewStarCTF-2023/</id>
         <title>NewStarCTF-2023 Writeup</title>
