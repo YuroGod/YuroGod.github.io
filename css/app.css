@@ -590,6 +590,9 @@ details summary::before {
 .i-cloud-music:before {
   content: "\e76a";
 }
+.i-gitee:before {
+  content: "\e607";
+}
 /* modern-normalize v2.0.0 | MIT License | https://github.com/sindresorhus/modern-normalize */
 *,
 ::before,
@@ -1141,8 +1144,8 @@ textarea {
 @font-face {
   font-family: 'ic';
   font-display: swap;
-  src: url("//at.alicdn.com/t/font_1832207_igi8uaupcus.eot");
-  src: url("//at.alicdn.com/t/font_1832207_igi8uaupcus.eot?#iefix") format('embedded-opentype'), url("//at.alicdn.com/t/font_1832207_igi8uaupcus.woff2") format('woff2'), url("//at.alicdn.com/t/font_1832207_igi8uaupcus.woff") format('woff'), url("//at.alicdn.com/t/font_1832207_igi8uaupcus.ttf") format('truetype'), url("//at.alicdn.com/t/font_1832207_igi8uaupcus.svg#ic") format('svg');
+  src: url("https://at.alicdn.com/t/c/font_4415496_59g1326wajd.eot");
+  src: url("https://at.alicdn.com/t/c/font_4415496_59g1326wajd.eot?#iefix") format('embedded-opentype'), url("https://at.alicdn.com/t/c/font_4415496_59g1326wajd.woff2") format('woff2'), url("https://at.alicdn.com/t/c/font_4415496_59g1326wajd.woff") format('woff'), url("https://at.alicdn.com/t/c/font_4415496_59g1326wajd.ttf") format('truetype'), url("https://at.alicdn.com/t/c/font_4415496_59g1326wajd.svg#ic") format('svg');
 }
 @font-face {
   font-family: 'jetbrains-mono';
@@ -2075,11 +2078,17 @@ use.stop-animation {
   overflow: hidden;
 }
 .panels .inner {
+  margin-top: 2.5rem;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   width: auto;
   height: 100%;
+}
+@media (max-width: 991px) {
+  .panels .inner {
+    margin-top: 0;
+  }
 }
 .panels .inner::-webkit-scrollbar {
   display: none;
@@ -2439,7 +2448,7 @@ use.stop-animation {
   background: var(--body-bg-shadow);
 }
 #footer .inner {
-  margin: 0 auto;
+  margin: 2rem auto 0.625rem;
   width: calc(100% - 0.625rem);
   position: relative;
   padding-left: 16.25rem;
@@ -2464,7 +2473,6 @@ use.stop-animation {
 .status {
   width: 100%;
   text-align: center;
-  margin-top: 2rem;
 }
 .languages {
   display: inline-block;
@@ -2490,7 +2498,6 @@ use.stop-animation {
 .powered-by,
 .theme-info {
   display: inline-block;
-  margin-bottom: 0.625rem;
 }
 @media (max-width: 567px) {
   .post.block {
@@ -4949,11 +4956,13 @@ span.label {
   width: auto;
   height: auto;
   background: none;
-  border-radius: 10px;
+  border-radius: 0;
   border-bottom: 0.125rem solid transparent;
 }
 .tabs .nav li.active::before {
   border-bottom-color: var(--primary-color);
+  left: 0;
+  right: 0;
 }
 .tabs .tab {
   display: none;
