@@ -10,12 +10,13 @@
         <category>ctf</category>
         <category>BeginCTF</category>
         <category>HSCCTF</category>
+        <category>NKCTF</category>
         <category>NSSCTF</category>
-        <category>NewStarCTF</category>
         <category>浙江省大学生网络与信息安全竞赛</category>
         <category>reverse</category>
         <category>game</category>
         <category>il2cpp</category>
+        <category>NewStarCTF</category>
         <item>
             <guid isPermalink="true">https://yurogod.github.io/ctf/events/NSSCTF-Round18-Basic/</guid>
             <title>NSSCTF Round#18 Basic Writeup</title>
