@@ -18,5 +18,5 @@
 ---
 
 > Author: yuro  
-> URL: blog.yuro.work/posts/583bc6c/  
+> URL: /posts/583bc6c/  
 

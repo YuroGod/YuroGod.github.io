@@ -30,5 +30,5 @@
 ---
 
 > Author:   
-> URL: blog.yuro.work/friends/  
+> URL: /friends/  
 

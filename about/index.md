@@ -8,5 +8,5 @@
 ---
 
 > Author:   
-> URL: blog.yuro.work/about/  
+> URL: /about/  
 
