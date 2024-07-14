@@ -32,7 +32,7 @@ print(flag.decode())
 ## quite_easy
 ida打开就看到个flag，火速提交，结果不对，意料之中哈哈
 
-尝试在main函数开头打断点，结果跑飞了，说明main函数之面肯定哪里藏了脏东西
+尝试在main函数开头打断点，结果跑飞了，说明main函数之前肯定哪里藏了脏东西
 
 ### TlsCallback
 瞄一下导出函数就看到了`TlsCallback_0_0`，里面有调用俩函数，都有花指令，简单去除一下
@@ -164,7 +164,7 @@ print(flag)
 #### 解法2 - 表达式化简求解
 将那一坨位运算合并一下得到`result = ~(data[i] &amp; s[i]) &amp; (data[i] ^ s[i])`
 
-所以我们需要在已知`data[i]`和`result`的情况下求解s[i]
+所以我们需要在已知`data[i]`和`result`的情况下求解`s[i]`
 
 先将表达式化简，需要一点点逻辑代数的知识
 {{&lt; raw &gt;}}
