@@ -1,0 +1,326 @@
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=2"><meta name=robots content="noodp"><title>WKCTF2024 - Yuro's Home</title><meta name=author content="yuro">
+<meta name=author-link content><meta name=description content="WKCTF2024 Reverse wp"><meta name=keywords content='CTF,Writeup'><meta itemprop=name content="WKCTF2024"><meta itemprop=description content="WKCTF2024 Reverse wp"><meta itemprop=datePublished content="2024-07-14T19:15:36+08:00"><meta itemprop=dateModified content="2024-07-14T22:43:08+08:00"><meta itemprop=wordCount content="1577"><meta itemprop=keywords content="CTF,Writeup"><meta property="og:url" content="/posts/04d636b/"><meta property="og:site_name" content="Yuro's Home"><meta property="og:title" content="WKCTF2024"><meta property="og:description" content="WKCTF2024 Reverse wp"><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-07-14T19:15:36+08:00"><meta property="article:modified_time" content="2024-07-14T22:43:08+08:00"><meta property="article:tag" content="CTF"><meta property="article:tag" content="Writeup"><meta name=twitter:card content="summary"><meta name=twitter:title content="WKCTF2024"><meta name=twitter:description content="WKCTF2024 Reverse wp"><meta name=application-name content="Yuro's Home"><meta name=apple-mobile-web-app-title content="Yuro's Home"><meta name=theme-color data-light=#f8f8f8 data-dark=#252627 content="#f8f8f8"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=/posts/04d636b/><link rel=prev href=/posts/73f38a7/><link rel=stylesheet href=/css/style.min.css><link rel=preload href=/lib/fontawesome-free/all.min.css as=style onload='this.removeAttribute("onload"),this.rel="stylesheet"'><noscript><link rel=stylesheet href=/lib/fontawesome-free/all.min.css></noscript><link rel=preload href=/lib/animate/animate.min.css as=style onload='this.removeAttribute("onload"),this.rel="stylesheet"'><noscript><link rel=stylesheet href=/lib/animate/animate.min.css></noscript><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"WKCTF2024","inLanguage":"en","mainEntityOfPage":{"@type":"WebPage","@id":"\/posts\/04d636b\/"},"genre":"posts","keywords":"CTF, Writeup","wordcount":1577,"url":"\/posts\/04d636b\/","datePublished":"2024-07-14T19:15:36+08:00","dateModified":"2024-07-14T22:43:08+08:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"yuro"},"description":""}</script></head><body data-header-desktop=auto data-header-mobile=auto><script>(window.localStorage?.getItem("theme")?localStorage.getItem("theme")==="dark":"auto"==="auto"?window.matchMedia("(prefers-color-scheme: dark)").matches:"auto"==="dark")&&document.body.setAttribute("data-theme","dark")</script><div class=wrapper data-page-style=normal><header class="desktop animate__faster" id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="Yuro's Home"><span class=header-title-text>Yuro's Home</span></a><span class=header-subtitle></span></div><nav><ul class=menu><li class=menu-item><a class=menu-link href=/posts/><i class="fa-solid fa-newspaper fa-fw fa-sm" aria-hidden=true></i> Posts</a></li><li class=menu-item><a class=menu-link href=/categories/><i class="fa-solid fa-folder-tree fa-fw fa-sm" aria-hidden=true></i> Categories</a></li><li class=menu-item><a class=menu-link href=/tags/><i class="fa-solid fa-tags fa-fw fa-sm" aria-hidden=true></i> Tags</a></li><li class=menu-item><a class=menu-link href=/friends/><i class="fa-solid fa-user fa-fw fa-sm" aria-hidden=true></i> Friends</a></li><li class=menu-item><a class=menu-link href=/about/><i class="fa-solid fa-user-circle fa-fw fa-sm" aria-hidden=true></i> About</a></li><li class="menu-item delimiter"></li><li class="menu-item theme-switch" title="Switch Theme"><i class="fa-solid fa-adjust fa-fw" aria-hidden=true></i></li></ul></nav></div></header><header class="mobile animate__faster" id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="Yuro's Home"><span class=header-title-text>Yuro's Home</span></a><span class=header-subtitle></span></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><nav><ul class=menu id=menu-mobile><li class=menu-item><a class=menu-link href=/posts/><i class="fa-solid fa-newspaper fa-fw fa-sm" aria-hidden=true></i> Posts</a></li><li class=menu-item><a class=menu-link href=/categories/><i class="fa-solid fa-folder-tree fa-fw fa-sm" aria-hidden=true></i> Categories</a></li><li class=menu-item><a class=menu-link href=/tags/><i class="fa-solid fa-tags fa-fw fa-sm" aria-hidden=true></i> Tags</a></li><li class=menu-item><a class=menu-link href=/friends/><i class="fa-solid fa-user fa-fw fa-sm" aria-hidden=true></i> Friends</a></li><li class=menu-item><a class=menu-link href=/about/><i class="fa-solid fa-user-circle fa-fw fa-sm" aria-hidden=true></i> About</a></li><li class="menu-item menu-system"><span class="menu-system-item theme-switch" title="Switch Theme"><i class="fa-solid fa-adjust fa-fw" aria-hidden=true></i></span></li></ul></nav></div></header><nav aria-label=breadcrumb class="breadcrumb-container sticky"><ol class=breadcrumb><li class=breadcrumb-item><a href=/ title="Yuro's Home">Home</a></li><li class=breadcrumb-item><a href=/posts/ title=Posts>Posts</a></li><li class="breadcrumb-item active" aria-current=page>WKCTF2024</li></ol></nav><main class=container><aside class="aside-collection animate__animated animate__fadeIn animate__faster" aria-label=Collections></aside><article class="page single"><div class=header><h1 class="single-title animate__animated animate__flipInX"><span>WKCTF2024</span></h1></div><div class=post-meta><div class=post-meta-line><span class=post-author><span class=author><img loading=lazy src=/images/avatar.png alt=yuro data-title=yuro width=20 height=20 class=avatar style="background:url(/images/loading.min.svg)no-repeat 50%" onload='this.title=this.dataset.title;for(const e of["style","data-title","onerror","onload"])this.removeAttribute(e);this.dataset.lazyloaded=""' onerror='this.title=this.dataset.title;for(const e of["style","data-title","onerror","onload"])this.removeAttribute(e)'>&nbsp;yuro</span></span><span class=post-included-in>&nbsp;included in <a href=/categories/ctfevent/ class=post-category title="Category - CTFEvent"><i class="fa-regular fa-folder fa-fw" aria-hidden=true></i> CTFEvent</a></span></div><div class=post-meta-line><span title="published on 2024-07-14 19:15:36"><i class="fa-solid fa-calendar-days fa-fw me-1" aria-hidden=true></i><time datetime=2024-07-14>2024-07-14</time></span>&nbsp;<span title="Updated on 2024-07-14 22:43:08"><i class="fa-regular fa-calendar-check fa-fw me-1" aria-hidden=true></i><time datetime=2024-07-14>2024-07-14</time></span>&nbsp;<span title="1577 words"><i class="fa-solid fa-pencil-alt fa-fw me-1" aria-hidden=true></i>About 1600 words</span>&nbsp;<span><i class="fa-regular fa-clock fa-fw me-1" aria-hidden=true></i>4 minutes</span>&nbsp;<span id=busuanzi_container_page_pv class="busuanzi_visitors comment-visitors" data-flag-title=WKCTF2024>
+<i class="fa-regular fa-eye fa-fw me-1" aria-hidden=true></i><span id=busuanzi_value_page_pv>-</span>&nbsp;views
+</span>&nbsp;</div></div><div class="details toc" id=toc-static data-kept=false><div class="details-summary toc-title"><span>Contents</span>
+<span><i class="details-icon fa-solid fa-angle-right" aria-hidden=true></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#so_easy>so_easy</a></li><li><a href=#quite_easy>quite_easy</a><ul><li><a href=#tlscallback>TlsCallback</a></li><li><a href=#main>main</a></li><li><a href=#加密逻辑>加密逻辑</a></li><li><a href=#解题>解题</a><ul><li><a href=#解法1---爆破>解法1 - 爆破</a></li><li><a href=#解法2---表达式化简求解>解法2 - 表达式化简求解</a></li></ul></li></ul></li></ul></nav></div></div><div class=content id=content><p>WKCTF2024 Reverse wp</p><h1 id=前言 class=heading-element><span>前言</span>
+<a href=#%e5%89%8d%e8%a8%80 class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h1><p>只出了两题，剩下那题是quickjs，不知道是版本问题还是打乱了opcode什么的，总之skill issue了，唉太菜了</p><h1 id=reverse23 class=heading-element><span>Reverse[2/3]</span>
+<a href=#reverse23 class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h1><h2 id=so_easy class=heading-element><span>so_easy</span>
+<a href=#so_easy class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h2><p>简单的安卓题，加密逻辑在so里面，建议看<code>lib\arm64-v8a\libeasy.so</code>，比其他几个清晰</p><p>跟<code>beginctf2024-出题人的密码是什么</code>的算法一样，做过的应该能看出来是魔改crc64，exp拿过来改个轮数和key就行了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=n>key</span> <span class=o>=</span> <span class=mh>0x71234EA7D92996F5</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>decrypt</span><span class=p>(</span><span class=n>value</span><span class=p>,</span> <span class=n>key</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=n>_</span> <span class=ow>in</span> <span class=nb>range</span><span class=p>(</span><span class=mi>255</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=n>value</span> <span class=o>&amp;</span> <span class=mi>1</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=n>value</span> <span class=o>=</span> <span class=p>(</span><span class=n>value</span> <span class=o>^</span> <span class=n>key</span><span class=p>)</span> <span class=o>&gt;&gt;</span> <span class=mi>1</span>
+</span></span><span class=line><span class=cl>            <span class=n>value</span> <span class=o>|=</span> <span class=mh>0x8000000000000000</span>
+</span></span><span class=line><span class=cl>        <span class=k>else</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>            <span class=n>value</span> <span class=o>=</span> <span class=n>value</span> <span class=o>&gt;&gt;</span> <span class=mi>1</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>value</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>enc</span> <span class=o>=</span> <span class=p>[</span><span class=mh>0x540A95F0C1BA81AE</span><span class=p>,</span> <span class=mh>0xF8844E52E24A0314</span><span class=p>,</span> <span class=mh>0x9FD988F98143EC9</span><span class=p>,</span> <span class=mh>0x3FC00F01B405AD5E</span><span class=p>]</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>flag</span> <span class=o>=</span> <span class=sa>b</span><span class=s1>&#39;&#39;</span>
+</span></span><span class=line><span class=cl><span class=k>for</span> <span class=n>i</span> <span class=ow>in</span> <span class=nb>range</span><span class=p>(</span><span class=mi>4</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=n>flag</span> <span class=o>+=</span> <span class=n>decrypt</span><span class=p>(</span><span class=n>enc</span><span class=p>[</span><span class=n>i</span><span class=p>],</span> <span class=n>key</span><span class=p>)</span><span class=o>.</span><span class=n>to_bytes</span><span class=p>(</span><span class=mi>8</span><span class=p>,</span> <span class=s1>&#39;little&#39;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>print</span><span class=p>(</span><span class=n>flag</span><span class=o>.</span><span class=n>decode</span><span class=p>())</span></span></span></code></pre></td></tr></table></div></div><h2 id=quite_easy class=heading-element><span>quite_easy</span>
+<a href=#quite_easy class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h2><p>ida打开就看到个flag，火速提交，结果不对，意料之中哈哈</p><p>尝试在main函数开头打断点，结果跑飞了，说明main函数之面肯定哪里藏了脏东西</p><h3 id=tlscallback class=heading-element><span>TlsCallback</span>
+<a href=#tlscallback class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h3><p>瞄一下导出函数就看到了<code>TlsCallback_0_0</code>，里面有调用俩函数，都有花指令，简单去除一下</p><p><code>sub_401195</code>里面是一个反调试，直接nop即可；<code>sub_4014A6</code>里是一个IAT hook，hook了strcmp，挂钩到<code>sub_401573</code></p><h3 id=main class=heading-element><span>main</span>
+<a href=#main class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h3><p>回到main函数看看，strcmp的参数分别为输入内容和一个字符串，传入钩子函数中<code>sub_401573</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=k>if</span> <span class=p>(</span> <span class=o>!</span><span class=nf>strcmp</span><span class=p>(</span><span class=n>input</span><span class=p>,</span> <span class=s>&#34;flag{ed1d665e6516a37ab09f0b7a40}&#34;</span><span class=p>)</span> <span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>v4</span> <span class=o>=</span> <span class=nf>sub_EB1389</span><span class=p>(</span><span class=n>std</span><span class=o>::</span><span class=n>wcout</span><span class=p>,</span> <span class=p>(</span><span class=kt>wchar_t</span> <span class=o>*</span><span class=p>)</span><span class=sa>L</span><span class=s>&#34;right&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=n>std</span><span class=o>::</span><span class=n>wostream</span><span class=o>::</span><span class=n>operator</span><span class=o>&lt;&lt;</span><span class=p>(</span><span class=n>v4</span><span class=p>,</span> <span class=n>sub_EB15FA</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span></span></span></code></pre></td></tr></table></div></div><h3 id=加密逻辑 class=heading-element><span>加密逻辑</span>
+<a href=#%e5%8a%a0%e5%af%86%e9%80%bb%e8%be%91 class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h3><p>有经验的话一眼就能看出来是一堆stl函数，可以自己编译一个exe，然后bindiff恢复符号，我这里就简单恢复了一下</p><p>首先置随机数种子，输入长度是32，所以随机数种子就是<code>32 + 89</code>了，然后生成一个长度16的随机数表</p><p>再往下就是加密逻辑，需要先解出前16个字节的数据，才能解后面16个字节的数据</p><p>加密完成后再还原hook，strcmp与密文比较</p><p>这里给出两种解法，爆破 和 直接解</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=kt>int</span> <span class=kr>__cdecl</span> <span class=nf>sub_EBA5A0</span><span class=p>(</span><span class=kt>char</span> <span class=o>*</span><span class=n>input</span><span class=p>,</span> <span class=n>BYTE</span> <span class=o>*</span><span class=n>s</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=kt>int</span> <span class=n>input_size</span><span class=p>;</span> <span class=c1>// eax
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>char</span> <span class=n>v3</span><span class=p>;</span> <span class=c1>// al
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>v4</span><span class=p>;</span> <span class=c1>// esi
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>v5</span><span class=p>;</span> <span class=c1>// esi
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>char</span> <span class=n>v6</span><span class=p>;</span> <span class=c1>// di
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=n>_BYTE</span> <span class=o>*</span><span class=n>v7</span><span class=p>;</span> <span class=c1>// eax
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>v8</span><span class=p>;</span> <span class=c1>// esi
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>v9</span><span class=p>;</span> <span class=c1>// esi
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>char</span> <span class=n>v10</span><span class=p>;</span> <span class=c1>// di
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=n>_BYTE</span> <span class=o>*</span><span class=n>v11</span><span class=p>;</span> <span class=c1>// eax
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=k>const</span> <span class=kt>char</span> <span class=o>*</span><span class=n>data</span><span class=p>;</span> <span class=c1>// eax
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=n>_BYTE</span> <span class=o>*</span><span class=n>v14</span><span class=p>;</span> <span class=c1>// [esp+10h] [ebp-158h]
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>v15</span><span class=p>;</span> <span class=c1>// [esp+18h] [ebp-150h]
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>m</span><span class=p>;</span> <span class=c1>// [esp+E4h] [ebp-84h]
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>k</span><span class=p>;</span> <span class=c1>// [esp+F0h] [ebp-78h]
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>j</span><span class=p>;</span> <span class=c1>// [esp+FCh] [ebp-6Ch]
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>i</span><span class=p>;</span> <span class=c1>// [esp+108h] [ebp-60h]
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>char</span> <span class=n>v20</span><span class=p>[</span><span class=mi>36</span><span class=p>];</span> <span class=c1>// [esp+114h] [ebp-54h] BYREF
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>char</span> <span class=n>s_input</span><span class=p>[</span><span class=mi>32</span><span class=p>];</span> <span class=c1>// [esp+138h] [ebp-30h] BYREF
+</span></span></span><span class=line><span class=cl><span class=c1></span>  <span class=kt>int</span> <span class=n>v22</span><span class=p>;</span> <span class=c1>// [esp+164h] [ebp-4h]
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl>  <span class=nf>j___CheckForDebuggerJustMyCode</span><span class=p>(</span><span class=o>&amp;</span><span class=n>unk_ECA036</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>sub_EB111D</span><span class=p>(</span><span class=n>input</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>v22</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=nf>sub_EB111D</span><span class=p>((</span><span class=kt>char</span> <span class=o>*</span><span class=p>)</span><span class=o>&amp;</span><span class=n>Str</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>input_size</span> <span class=o>=</span> <span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=nf>size</span><span class=p>(</span><span class=n>s_input</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>srand</span><span class=p>(</span><span class=n>input_size</span> <span class=o>+</span> <span class=mi>89</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=k>for</span> <span class=p>(</span> <span class=n>i</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=n>i</span> <span class=o>&lt;</span> <span class=mi>16</span><span class=p>;</span> <span class=o>++</span><span class=n>i</span> <span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>v3</span> <span class=o>=</span> <span class=nf>rand</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>    <span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=nf>append</span><span class=p>(</span><span class=n>v3</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=k>if</span> <span class=p>(</span> <span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=nf>size</span><span class=p>(</span><span class=n>s_input</span><span class=p>)</span> <span class=o>!=</span> <span class=mi>48</span> <span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=nf>exit</span><span class=p>(</span><span class=mi>99</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=k>for</span> <span class=p>(</span> <span class=n>j</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=n>j</span> <span class=o>&lt;</span> <span class=mi>16</span><span class=p>;</span> <span class=o>++</span><span class=n>j</span> <span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>v4</span> <span class=o>=</span> <span class=o>*</span><span class=p>(</span><span class=kt>char</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=n>operator</span><span class=p>[](</span><span class=n>j</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=n>v5</span> <span class=o>=</span> <span class=o>*</span><span class=p>(</span><span class=kt>char</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=n>operator</span><span class=p>[](</span><span class=n>j</span> <span class=o>+</span> <span class=mi>32</span><span class=p>)</span> <span class=o>^</span> <span class=n>v4</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=n>v6</span> <span class=o>=</span> <span class=o>*</span><span class=p>(</span><span class=n>_BYTE</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=n>operator</span><span class=p>[](</span><span class=n>j</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=n>v7</span> <span class=o>=</span> <span class=p>(</span><span class=n>_BYTE</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=n>operator</span><span class=p>[](</span><span class=n>j</span> <span class=o>+</span> <span class=mi>32</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=nf>append</span><span class=p>(</span><span class=o>~</span><span class=p>(</span><span class=o>*</span><span class=n>v7</span> <span class=o>&amp;</span> <span class=n>v6</span><span class=p>)</span> <span class=o>&amp;</span> <span class=n>v5</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=k>for</span> <span class=p>(</span> <span class=n>k</span> <span class=o>=</span> <span class=mi>16</span><span class=p>;</span> <span class=n>k</span> <span class=o>&lt;</span> <span class=mi>32</span><span class=p>;</span> <span class=o>++</span><span class=n>k</span> <span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>v8</span> <span class=o>=</span> <span class=o>*</span><span class=p>(</span><span class=kt>char</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=n>operator</span><span class=p>[](</span><span class=n>k</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=n>v9</span> <span class=o>=</span> <span class=o>*</span><span class=p>(</span><span class=kt>char</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=n>operator</span><span class=p>[](</span><span class=n>k</span> <span class=o>-</span> <span class=mi>16</span><span class=p>)</span> <span class=o>^</span> <span class=n>v8</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=n>v10</span> <span class=o>=</span> <span class=o>*</span><span class=p>(</span><span class=n>_BYTE</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=n>operator</span><span class=p>[](</span><span class=n>k</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=n>v11</span> <span class=o>=</span> <span class=p>(</span><span class=n>_BYTE</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=n>operator</span><span class=p>[](</span><span class=n>k</span> <span class=o>-</span> <span class=mi>16</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=nf>append</span><span class=p>(</span><span class=o>~</span><span class=p>(</span><span class=o>*</span><span class=n>v11</span> <span class=o>&amp;</span> <span class=n>v10</span><span class=p>)</span> <span class=o>&amp;</span> <span class=n>v9</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=k>for</span> <span class=p>(</span> <span class=n>m</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=n>m</span> <span class=o>&lt;</span> <span class=mi>32</span><span class=p>;</span> <span class=o>++</span><span class=n>m</span> <span class=p>)</span>
+</span></span><span class=line><span class=cl>  <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=n>v14</span> <span class=o>=</span> <span class=p>(</span><span class=n>_BYTE</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=n>operator</span><span class=p>[](</span><span class=n>m</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=o>*</span><span class=n>v14</span> <span class=o>-=</span> <span class=n>s</span><span class=p>[</span><span class=n>m</span><span class=p>];</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=nf>restore_strcmp</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>  <span class=n>data</span> <span class=o>=</span> <span class=p>(</span><span class=k>const</span> <span class=kt>char</span> <span class=o>*</span><span class=p>)</span><span class=n>std</span><span class=o>::</span><span class=n>string</span><span class=o>::</span><span class=nf>c_str</span><span class=p>(</span><span class=n>v20</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>v15</span> <span class=o>=</span> <span class=nf>strcmp</span><span class=p>(</span><span class=n>data</span><span class=p>,</span> <span class=n>enc_data</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>LOBYTE</span><span class=p>(</span><span class=n>v22</span><span class=p>)</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=nf>sub_EB1357</span><span class=p>(</span><span class=n>v20</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>v22</span> <span class=o>=</span> <span class=o>-</span><span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=nf>sub_EB1357</span><span class=p>(</span><span class=n>s_input</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=k>return</span> <span class=n>v15</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div><h3 id=解题 class=heading-element><span>解题</span>
+<a href=#%e8%a7%a3%e9%a2%98 class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h3><h4 id=解法1---爆破 class=heading-element><span>解法1 - 爆破</span>
+<a href=#%e8%a7%a3%e6%b3%951---%e7%88%86%e7%a0%b4 class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h4><p>看到一堆位运算就头疼，赛时我也是选择了直接爆破，没啥好讲究的，逻辑抄过来直接爆呗</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=n>enc</span> <span class=o>=</span> <span class=nb>bytearray</span><span class=o>.</span><span class=n>fromhex</span><span class=p>(</span><span class=s2>&#34;80D36FFF1503988CB45B96C059AC18DF2DCE3FFBC4EDD8D2A82DF8239F2225CE&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>s</span> <span class=o>=</span> <span class=s2>&#34;flag</span><span class=si>{ed1d665e6516a37ab09f0b7a40}</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl><span class=n>rand_data</span> <span class=o>=</span> <span class=nb>bytearray</span><span class=o>.</span><span class=n>fromhex</span><span class=p>(</span><span class=s2>&#34;b1 74 93 32 d6 13 cc 85 20 a8 f4 96 8a d2 7d 26&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>part1</span> <span class=o>=</span> <span class=s2>&#34;&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>for</span> <span class=n>i</span> <span class=ow>in</span> <span class=nb>range</span><span class=p>(</span><span class=mi>16</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=n>j</span> <span class=ow>in</span> <span class=nb>range</span><span class=p>(</span><span class=mi>32</span><span class=p>,</span> <span class=mi>128</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>        <span class=n>v5</span> <span class=o>=</span> <span class=n>rand_data</span><span class=p>[</span><span class=n>i</span><span class=p>]</span> <span class=o>^</span> <span class=n>j</span>
+</span></span><span class=line><span class=cl>        <span class=n>v6</span> <span class=o>=</span> <span class=n>j</span>
+</span></span><span class=line><span class=cl>        <span class=n>v7</span> <span class=o>=</span> <span class=n>rand_data</span><span class=p>[</span><span class=n>i</span><span class=p>]</span>
+</span></span><span class=line><span class=cl>        <span class=n>tmp</span> <span class=o>=</span> <span class=o>~</span><span class=p>(</span><span class=n>v7</span> <span class=o>&amp;</span> <span class=n>v6</span><span class=p>)</span> <span class=o>&amp;</span> <span class=n>v5</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=p>((</span><span class=n>tmp</span> <span class=o>-</span> <span class=nb>ord</span><span class=p>(</span><span class=n>s</span><span class=p>[</span><span class=n>i</span><span class=p>]))</span> <span class=o>&amp;</span> <span class=mh>0xff</span> <span class=o>==</span> <span class=n>enc</span><span class=p>[</span><span class=n>i</span><span class=p>]):</span>
+</span></span><span class=line><span class=cl>            <span class=nb>print</span><span class=p>(</span><span class=n>tmp</span><span class=p>,</span> <span class=n>v5</span><span class=p>,</span> <span class=n>v6</span><span class=p>,</span> <span class=n>v7</span><span class=p>,</span> <span class=n>j</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=n>part1</span> <span class=o>+=</span> <span class=nb>chr</span><span class=p>(</span><span class=n>j</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>flag</span> <span class=o>=</span> <span class=n>part1</span>
+</span></span><span class=line><span class=cl><span class=k>for</span> <span class=n>i</span> <span class=ow>in</span> <span class=nb>range</span><span class=p>(</span><span class=mi>16</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=n>j</span> <span class=ow>in</span> <span class=nb>range</span><span class=p>(</span><span class=mi>32</span><span class=p>,</span> <span class=mi>128</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>        <span class=n>v5</span> <span class=o>=</span> <span class=nb>ord</span><span class=p>(</span><span class=n>part1</span><span class=p>[</span><span class=n>i</span><span class=p>])</span> <span class=o>^</span> <span class=n>j</span>
+</span></span><span class=line><span class=cl>        <span class=n>v6</span> <span class=o>=</span> <span class=n>j</span>
+</span></span><span class=line><span class=cl>        <span class=n>v7</span> <span class=o>=</span> <span class=nb>ord</span><span class=p>(</span><span class=n>part1</span><span class=p>[</span><span class=n>i</span><span class=p>])</span>
+</span></span><span class=line><span class=cl>        <span class=n>tmp</span> <span class=o>=</span> <span class=o>~</span><span class=p>(</span><span class=n>v7</span> <span class=o>&amp;</span> <span class=n>v6</span><span class=p>)</span> <span class=o>&amp;</span> <span class=n>v5</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=p>((</span><span class=n>tmp</span> <span class=o>-</span> <span class=nb>ord</span><span class=p>(</span><span class=n>s</span><span class=p>[</span><span class=mi>16</span> <span class=o>+</span> <span class=n>i</span><span class=p>]))</span> <span class=o>&amp;</span> <span class=mh>0xff</span> <span class=o>==</span> <span class=n>enc</span><span class=p>[</span><span class=mi>16</span> <span class=o>+</span> <span class=n>i</span><span class=p>]):</span>
+</span></span><span class=line><span class=cl>            <span class=n>flag</span> <span class=o>+=</span> <span class=nb>chr</span><span class=p>(</span><span class=n>j</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            
+</span></span><span class=line><span class=cl><span class=nb>print</span><span class=p>(</span><span class=n>flag</span><span class=p>)</span></span></span></code></pre></td></tr></table></div></div><h4 id=解法2---表达式化简求解 class=heading-element><span>解法2 - 表达式化简求解</span>
+<a href=#%e8%a7%a3%e6%b3%952---%e8%a1%a8%e8%be%be%e5%bc%8f%e5%8c%96%e7%ae%80%e6%b1%82%e8%a7%a3 class=heading-mark><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5.0 114.95 4.95l-2.5 2.5a3.5 3.5.0 01-4.95.0.751.751.0 01.018-1.042.751.751.0 011.042-.018 1.998 1.998.0 002.83.0l2.5-2.5a2.002 2.002.0 00-2.83-2.83l-1.25 1.25a.751.751.0 01-1.042-.018.751.751.0 01-.018-1.042zm-4.69 9.64a1.998 1.998.0 002.83.0l1.25-1.25a.751.751.0 011.042.018.751.751.0 01.018 1.042l-1.25 1.25a3.5 3.5.0 11-4.95-4.95l2.5-2.5a3.5 3.5.0 014.95.0.751.751.0 01-.018 1.042.751.751.0 01-1.042.018 1.998 1.998.0 00-2.83.0l-2.5 2.5a1.998 1.998.0 000 2.83z"/></svg></a></h4><p>将那一坨位运算合并一下得到<code>result = ~(data[i] & s[i]) & (data[i] ^ s[i])</code></p><p>所以我们需要在已知<code>data[i]</code>和<code>result</code>的情况下求解s[i]</p><p>先将表达式化简，需要一点点逻辑代数的知识<div class=fi-row>$$
+\begin{aligned}
+result &= \sim(data[i] \& s[i]) \& (data[i] \oplus s[i]) \\
+&= (\sim data[i] \mid \sim s[i]) \& (data[i] \oplus s[i]) \\
+&= (\sim data[i] \& (data[i] \oplus s[i])) \mid (\sim s[i] \& (data[i] \oplus s[i])) \\
+&= (\sim data[i] \& data[i]) \oplus (\sim data[i] \& s[i]) \mid (\sim s[i] \& data[i]) \oplus (\sim s[i] \& s[i]) \\
+&= (\sim data[i] \& s[i]) \mid (\sim s[i] \& data[i]) \\
+&= data[i] \oplus s[i]
+\end{aligned}
+$$</div></p><p>可以得知加密算法其实相当于一个异或而已，直接解就行了</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=cp>#include</span> <span class=cpf>&lt;stdio.h&gt;</span><span class=cp>
+</span></span></span><span class=line><span class=cl><span class=cp>#include</span> <span class=cpf>&lt;stdlib.h&gt;</span><span class=cp>
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=kt>unsigned</span> <span class=kt>char</span> <span class=n>enc_data</span><span class=p>[</span><span class=mi>32</span><span class=p>]</span> <span class=o>=</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=mh>0x80</span><span class=p>,</span> <span class=mh>0xD3</span><span class=p>,</span> <span class=mh>0x6F</span><span class=p>,</span> <span class=mh>0xFF</span><span class=p>,</span> <span class=mh>0x15</span><span class=p>,</span> <span class=mh>0x03</span><span class=p>,</span> <span class=mh>0x98</span><span class=p>,</span> <span class=mh>0x8C</span><span class=p>,</span> <span class=mh>0xB4</span><span class=p>,</span> <span class=mh>0x5B</span><span class=p>,</span> <span class=mh>0x96</span><span class=p>,</span> <span class=mh>0xC0</span><span class=p>,</span> <span class=mh>0x59</span><span class=p>,</span> <span class=mh>0xAC</span><span class=p>,</span> <span class=mh>0x18</span><span class=p>,</span> <span class=mh>0xDF</span><span class=p>,</span> 
+</span></span><span class=line><span class=cl>    <span class=mh>0x2D</span><span class=p>,</span> <span class=mh>0xCE</span><span class=p>,</span> <span class=mh>0x3F</span><span class=p>,</span> <span class=mh>0xFB</span><span class=p>,</span> <span class=mh>0xC4</span><span class=p>,</span> <span class=mh>0xED</span><span class=p>,</span> <span class=mh>0xD8</span><span class=p>,</span> <span class=mh>0xD2</span><span class=p>,</span> <span class=mh>0xA8</span><span class=p>,</span> <span class=mh>0x2D</span><span class=p>,</span> <span class=mh>0xF8</span><span class=p>,</span> <span class=mh>0x23</span><span class=p>,</span> <span class=mh>0x9F</span><span class=p>,</span> <span class=mh>0x22</span><span class=p>,</span> <span class=mh>0x25</span><span class=p>,</span> <span class=mh>0xCE</span>
+</span></span><span class=line><span class=cl><span class=p>};</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kt>char</span> <span class=n>s</span><span class=p>[]</span> <span class=o>=</span> <span class=s>&#34;flag{ed1d665e6516a37ab09f0b7a40}&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kt>int</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nf>srand</span><span class=p>(</span><span class=mi>32</span> <span class=o>+</span> <span class=mi>89</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=kt>unsigned</span> <span class=kt>char</span> <span class=n>key</span><span class=p>[</span><span class=mi>16</span><span class=p>];</span>
+</span></span><span class=line><span class=cl>    <span class=kt>unsigned</span> <span class=kt>char</span> <span class=n>flag</span><span class=p>[</span><span class=mi>32</span><span class=p>];</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=p>(</span><span class=kt>size_t</span> <span class=n>i</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=n>i</span> <span class=o>&lt;</span> <span class=mi>16</span><span class=p>;</span> <span class=o>++</span><span class=n>i</span> <span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=kt>unsigned</span> <span class=kt>char</span> <span class=n>rnd</span> <span class=o>=</span> <span class=nf>rand</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>        <span class=n>key</span><span class=p>[</span><span class=n>i</span><span class=p>]</span> <span class=o>=</span> <span class=n>rnd</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=p>(</span><span class=kt>size_t</span> <span class=n>i</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=n>i</span> <span class=o>&lt;</span> <span class=mi>16</span><span class=p>;</span> <span class=n>i</span><span class=o>++</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>flag</span><span class=p>[</span><span class=n>i</span><span class=p>]</span> <span class=o>=</span> <span class=p>(</span><span class=n>enc_data</span><span class=p>[</span><span class=n>i</span><span class=p>]</span> <span class=o>+</span> <span class=n>s</span><span class=p>[</span><span class=n>i</span><span class=p>])</span> <span class=o>^</span> <span class=n>key</span><span class=p>[</span><span class=n>i</span><span class=p>];</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=p>(</span><span class=kt>size_t</span> <span class=n>i</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=n>i</span> <span class=o>&lt;</span> <span class=mi>16</span><span class=p>;</span> <span class=n>i</span><span class=o>++</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>flag</span><span class=p>[</span><span class=mi>16</span> <span class=o>+</span> <span class=n>i</span><span class=p>]</span> <span class=o>=</span> <span class=p>(</span><span class=n>enc_data</span><span class=p>[</span><span class=mi>16</span> <span class=o>+</span> <span class=n>i</span><span class=p>]</span> <span class=o>+</span> <span class=n>s</span><span class=p>[</span><span class=mi>16</span> <span class=o>+</span> <span class=n>i</span><span class=p>])</span> <span class=o>^</span> <span class=n>flag</span><span class=p>[</span><span class=n>i</span><span class=p>];</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=p>(</span><span class=kt>size_t</span> <span class=n>i</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=n>i</span> <span class=o>&lt;</span> <span class=mi>32</span><span class=p>;</span> <span class=n>i</span><span class=o>++</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nf>printf</span><span class=p>(</span><span class=s>&#34;%c&#34;</span><span class=p>,</span> <span class=n>flag</span><span class=p>[</span><span class=n>i</span><span class=p>]);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span title="Updated on 2024-07-14 22:43:08">Updated on 2024-07-14&nbsp;</span></div><div class=post-info-license><span><a rel="license external nofollow noopener noreferrer" href=https://creativecommons.org/licenses/by-nc-sa/4.0/ target=_blank>CC BY-NC-SA 4.0</a></span></div></div><div class=post-info-line><div class=post-info-md><span><a href=/posts/04d636b/index.md title="Read Markdown" class=link-to-markdown>Read Markdown</a></span></div><div class=post-info-share><span><a href=javascript:void(0); title="Share on X" data-sharer=twitter data-url=/posts/04d636b/ data-title=WKCTF2024 data-hashtags=CTF,Writeup><i class="fa-brands fa-x-twitter fa-fw" aria-hidden=true></i></a>
+<a href=javascript:void(0); title="Share on Facebook" data-sharer=facebook data-url=/posts/04d636b/ data-hashtag=CTF><i class="fa-brands fa-facebook-square fa-fw" aria-hidden=true></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fa-solid fa-tags fa-fw me-1" aria-hidden=true></i><a href=/tags/ctf/ class=post-tag title="Tags - CTF">CTF</a><a href=/tags/writeup/ class=post-tag title="Tags - Writeup">Writeup</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>Back</a></span>&nbsp;|&nbsp;<span><a href=/>Home</a></span></section></div><div class=post-nav><a href=/posts/73f38a7/ class=post-nav-item rel=prev title=2024春秋杯网络安全联赛夏季赛><i class="fa-solid fa-angle-left fa-fw" aria-hidden=true></i>2024春秋杯网络安全联赛夏季赛</a></div></div></article><aside class=toc id=toc-auto aria-label=Contents><h2 class=toc-title>Contents&nbsp;<i class="toc-icon fa-solid fa-angle-down fa-fw" aria-hidden=true></i></h2><div class=toc-content id=toc-content-auto></div></aside></main><footer class=footer><div class=footer-container><div class="footer-line powered">Powered by <a href=https://gohugo.io/ target=_blank rel="external nofollow noopener noreferrer" title="Hugo 0.128.2"><img class=hugo-icon src=/images/hugo.min.svg alt="Hugo logo"> Hugo</a> | Theme - <a href=https://github.com/hugo-fixit/FixIt target=_blank rel=external title="FixIt v0.3.8-RC"><img class=fixit-icon src=/images/fixit.min.svg alt="FixIt logo"> FixIt</a></div><div class="footer-line copyright" itemscope itemtype=http://schema.org/CreativeWork><i class="fa-regular fa-copyright fa-fw" aria-hidden=true></i>
+<span itemprop=copyrightYear>2024</span><span class=author itemprop=copyrightHolder>
+<a href=/>yuro</a></span></div><div class="footer-line statistics"><span class=site-time title='Website running ...'><i class="fa-solid fa-heartbeat fa-fw animate-icon" aria-hidden=true></i><span class="ms-1 d-none">本站运行时间</span><span class="run-times ms-1">Website running ...</span></span></div><div class="footer-line visitor"><span id=busuanzi_container_site_uv title='Total visitors'><i class="fa-regular fa-user fa-fw" aria-hidden=true></i>&nbsp;<span id=busuanzi_value_site_uv><i class="fa-solid fa-spinner fa-spin fa-fw" aria-hidden=true></i></span></span><span id=busuanzi_container_site_pv class=footer-divider title='Total visits'><i class="fa-regular fa-eye fa-fw" aria-hidden=true></i>&nbsp;<span id=busuanzi_value_site_pv><i class="fa-solid fa-spinner fa-spin fa-fw" aria-hidden=true></i></span></span></div></div></footer></div><div class=widgets><div class="fixed-buttons animate__faster d-none"><div class="fixed-button back-to-top" role=button aria-label="Back to Top"><i class="fa-solid fa-arrow-up fa-fw" aria-hidden=true></i><span class="variant-numeric d-none">0%</span></div></div><div id=mask></div><div class=reading-progress-bar style=left:0;top:0;--bg-progress:#FF00FF;--bg-progress-dark:#00FFFF></div><noscript><div class=noscript-warning>यह वेबसाइट जावास्क्रिप्ट सक्षम होने पर सबसे अच्छा काम करती है।</div></noscript></div><link rel=preload href=/lib/katex/katex.min.css as=style onload='this.removeAttribute("onload"),this.rel="stylesheet"'><noscript><link rel=stylesheet href=/lib/katex/katex.min.css></noscript><link rel=stylesheet href=/lib/cookieconsent/cookieconsent.min.css><link rel=stylesheet href=/lib/pace/themes/blue/pace-theme-minimal.css><script src=/lib/sharer/sharer.min.js async defer></script><script src=/lib/katex/katex.min.js defer></script><script src=/lib/katex/auto-render.min.js defer></script><script src=/lib/katex/copy-tex.min.js defer></script><script src=/lib/katex/mhchem.min.js defer></script><script src=/lib/cookieconsent/cookieconsent.min.js defer></script><script src=/lib/pangu/pangu.min.js defer></script><script src=/lib/cell-watermark/watermark.min.js defer></script><script src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js async defer></script><script src=/lib/pace/pace.min.js async defer></script><script>window.config={code:{copyTitle:"Copy to clipboard",editLockTitle:"Lock editable code block",editUnLockTitle:"Unlock editable code block",editable:!0,maxShownLines:10},comment:{enable:!1},cookieconsent:{content:{dismiss:"Got it!",link:"Learn more",message:"This website uses Cookies to improve your experience."},enable:!0,palette:{button:{background:"#f0f0f0"},popup:{background:"#1aa3ff"}},theme:"edgeless"},math:{delimiters:[{display:!0,left:"$$",right:"$$"},{display:!0,left:"\\[",right:"\\]"},{display:!0,left:"\\begin{equation}",right:"\\end{equation}"},{display:!0,left:"\\begin{equation*}",right:"\\end{equation*}"},{display:!0,left:"\\begin{align}",right:"\\end{align}"},{display:!0,left:"\\begin{align*}",right:"\\end{align*}"},{display:!0,left:"\\begin{alignat}",right:"\\end{alignat}"},{display:!0,left:"\\begin{alignat*}",right:"\\end{alignat*}"},{display:!0,left:"\\begin{gather}",right:"\\end{gather}"},{display:!0,left:"\\begin{CD}",right:"\\end{CD}"},{display:!1,left:"$",right:"$"},{display:!1,left:"\\(",right:"\\)"}],strict:!1},pangu:{enable:!0,selector:"article"},siteTime:"2024-01-01T00:00:00+08:00",version:"v0.3.8-RC",watermark:{colspacing:30,content:"❄",enable:!0,fontfamily:"inherit",fontsize:1,height:20,opacity:.2,rotate:15,rowspacing:60,width:150}}</script><script src=/js/theme.min.js defer></script></body></html>
