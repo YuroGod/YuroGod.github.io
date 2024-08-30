@@ -23,14 +23,7 @@ Git / vscode / virsual studio / jetbrains
 
 IDA / Ghidra / Jeb / x64dbg / Frida / Binary Ninja / Cheat Engine...
 
-### 游戏安全
-Windows上对于3环上的对抗有一定的了解，驱动层的对抗还没有深入学习过
-
-Android上的了解不是很多，能进行简单的游戏逆向修改，但对于反作弊基本上没有对抗能力
-
-对Unity引擎的游戏有过很长时间的研究，对各类魔改il2cpp的情况基本都能有合适的方法对抗
-
-Unreal Engine引擎也有过一点了解，但经验不是很多，还在我的TODO里吃灰中...
+喜欢Game Hacking
 
 ### 联系我
 - email: [yurogod@foxmail.com](mailto:yurogod@foxmail.com)
