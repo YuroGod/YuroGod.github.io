@@ -12,22 +12,18 @@
 
 
 ### CTF
-0Hom3rs校队成员，0xFFF / r3kapig联队成员，一个菜菜的rev手，也喜欢玩一些有趣的取证
+联队: 0xFFF &amp; r3kapig，一个菜菜的rev手，也喜欢玩一些有趣的取证
 
-### 技术栈
-C / C&#43;&#43; / Python
-
-Linux / Windows
-
-Git / vscode / virsual studio / jetbrains
-
-IDA / Ghidra / Jeb / x64dbg / Frida / Binary Ninja / Cheat Engine...
-
-喜欢Game Hacking
+### 技能
+好像没什么拿得出手的技能😥，lllllllllearning···
 
 ### 联系我
 - email: [yurogod@foxmail.com](mailto:yurogod@foxmail.com)
 - discord: [yuro](https://discordapp.com/users/1000474353927979038)
+
+实际上博客很少发东西，所以你也可以在下面两个论坛找到我
+- ❄️ Kanxue: [TubituX](https://bbs.kanxue.com/homepage-958990.htm)
+- 🥳 吾爱论坛: [yur0](https://www.52pojie.cn/home.php?mod=space&amp;uid=2292917&amp;do=thread&amp;view=me&amp;from=space)
 
 ---
 
