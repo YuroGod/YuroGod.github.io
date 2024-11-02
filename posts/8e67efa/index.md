@@ -204,6 +204,7 @@ Stegsolve找lsb有一段类似base64表
 ![alt text](/images/ZJSS-s7/image-9.png)
 
 Base64换表解码得到flag
+
 ![alt text](/images/ZJSS-s7/image-10.png)
 
 ## 信创安全
