@@ -4,7 +4,7 @@
 NewStar CTF 2024 Week5 Reverse Writeup
 &lt;!--more--&gt;
 ## 前言
-时隔一年, 也是第二次参加NewStar CTF了
+时隔一年, 也是第二次参加NewStar CTF了，虽然是新生赛不过也是学到了很多东西
 
 今年的Rev除了Week4那一周太多事情实在太忙了唉没时间做，其他几周的运气好都解决了哈哈
 
