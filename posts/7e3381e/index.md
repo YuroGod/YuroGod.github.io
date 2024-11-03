@@ -333,6 +333,7 @@ print(enc)
 
 ### PangBai 泰拉记（2）
 vm题，简单调试了一下发现是单字节加密，那么frida启动开始爆破!
+
 可以学习一下这篇文章[基于 Frida 对单字节加密验证程序侧信道爆破](https://bbs.kanxue.com/thread-281796.htm)
 
 不过在启动前先把那个可恶的`getchar() == 10`给patch掉，卡了我半天
