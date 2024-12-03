@@ -368,7 +368,7 @@ if(isset($_GET[&#39;code&#39;])){
 ```
 
 无参数RCE，ban了session_id与readfile，直接利用header实现rce
-![alt text](web1.png)
+![alt text](/images/ZJSS-s7/web.png)
 
 ### Reverse
 #### Reverse1
