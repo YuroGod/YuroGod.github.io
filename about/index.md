@@ -9,6 +9,7 @@
 | Personality Type                                                                | Mind            | Energy        | Nature      | Tactics	        | Identity      | Test token                                                             |
 |---------------------------------------------------------------------------------|-----------------|---------------|-------------|-----------------|---------------|------------------------------------------------------------------------|
 | [Turbulent Mediator](https://www.16personalities.com/infp-personality) (INFP-T) | 65% Introverted | 61% Intuitive | 64% Feeling | 64% Prospecting | 78% Turbulent | [Oct 15, 2023](https://www.16personalities.com/profiles/ff3efe52bf39a) |
+| [Turbulent Mediator](https://www.16personalities.com/infp-personality) (INFP-T) | 68% Introverted | 61% Intuitive | 69% Feeling | 64% Prospecting | 72% Turbulent | [Dec 20, 2024](https://www.16personalities.com/profiles/ff3efe52bf39a) |
 
 
 ### CTF
