@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet href="/scripts/pretty-feed-v3.xsl" type="text/xsl"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:h="http://www.w3.org/TR/html4/"><channel><title>Yuro&apos;s blog</title><description>I Never Finish Plan</description><link>https://blog.yuro.work</link><item><title>腾讯游戏安全竞赛 2016 安卓方向初赛与决赛题目 Writeup</title><link>https://blog.yuro.work/blog/tencent-game-security-competition-2016-writeup</link><guid isPermaLink="true">https://blog.yuro.work/blog/tencent-game-security-competition-2016-writeup</guid><description>腾讯游戏安全竞赛 2016 安卓方向初赛与决赛题目的逆向分析与解题过程</description><pubDate>Mon, 07 Sep 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;题目链接: &lt;a href=&quot;https://gslab.qq.com/competition/firstTurn.shtml&quot;&gt;https://gslab.qq.com/competition/firstTurn.shtml&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;10年前的题目长的真是眉清目秀🫠&lt;/p&gt;
+&lt;h2&gt;初赛题目&lt;/h2&gt;
+&lt;h3&gt;题目描述&lt;/h3&gt;
+&lt;p&gt;Tencent2016A 是一个简单的注册程序，见附件，请写一个注册机，点击Check即可显示是否通过, Name和Code可以手动输入,也可以通过扫描二维码输入。&lt;/p&gt;
+&lt;h3&gt;解题过程&lt;/h3&gt;
+&lt;p&gt;java层逻辑很简单，判断一下输入Name的长度在6~20以内，然后直接调用native层的 &lt;code&gt;NativeCheckRegister&lt;/code&gt; 函数进行check&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;package com.tencent.tencent2016a;
+
+import android.view.View;
+
+/* JADX INFO: loaded from: classes.dex */
+class c implements View.OnClickListener {
+    final /* synthetic */ MainActivity a;
+
+    c(MainActivity mainActivity) {
+        this.a = mainActivity;
+    }
+
+    @Override // android.view.View.OnClickListener
+    public void onClick(View view) {
+        String name = this.a.q.getText().toString();
+        String code = this.a.r.getText().toString();
+        if (name.length() &amp;#x3C; 6 || name.length() &gt; 20) {
+            this.a.s.setMessage(&quot;Name too short(&amp;#x3C;6) or too long(&gt;20)!&quot;);
+        } else if (1 == this.a.NativeCheckRegister(name, code)) {
+            this.a.s.setMessage(&quot;Check Success!&quot;);
+        } else {
+            this.a.s.setMessage(&quot;Check Fail!&quot;);
+        }
+        this.a.s.create().show();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Native 层逻辑也很清晰：先校验 name 长度（6~20），再根据 name 生成 20 字节 hash，接着 Base64 解码 code，要求解码后长度必须为 20。&lt;/p&gt;
+&lt;p&gt;两边都拆成 5 个 DWORD，hash 会先做有符号整除 10。由于 Python 与 C 在整除行为上存在差异，写脚本时需要特殊处理&lt;/p&gt;
+&lt;p&gt;最后解一组简单的线性方程即可&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-c&quot;&gt;bool __fastcall check(const char *name, unsigned __int8 *code)
+{
+  signed int name_size; // r5
+  _BOOL4 result; // r0
+  int i; // r4
+  _DWORD *p_hash; // r7
+  int temp; // r3
+  int j; // r4
+  int dword; // r1
+  _DWORD hash_div10[5]; // [sp+18h] [bp-444h] BYREF
+  _DWORD dwords[5]; // [sp+2Ch] [bp-430h] BYREF
+  _BYTE hash[20]; // [sp+40h] [bp-41Ch] BYREF
+  _BYTE decode_code[1032]; // [sp+54h] [bp-408h] BYREF
+
+  name_size = j_strlen(a1: name);
+  if ( (unsigned int)(name_size - 6) &gt; 14 )
+    return false;
+  j_memset(a1: hash, a2: 0, a3: sizeof(hash));
+  for ( i = 0; i != 16; ++i )
+  {
+    p_hash = &amp;#x26;hash[i];
+    temp = (unsigned __int8)name[i % name_size] * (i + 20160126) * name_size;
+    *p_hash += temp;
+  }
+  j_memset(a1: decode_code, a2: 0, a3: 0x400u);
+  if ( CalcBase64DecodedSize(code) &gt; 1024 || Base64Decode(out: decode_code, in: code) != 20 )
+    return false;
+  j_memset(a1: hash_div10, a2: 0, a3: sizeof(hash_div10));
+  j_memset(a1: dwords, a2: 0, a3: sizeof(dwords));
+  for ( j = 0; j != 5; ++j )
+  {
+    dword = *(_DWORD *)&amp;#x26;decode_code[j * 4];
+    hash_div10[j] = *(_DWORD *)&amp;#x26;hash[j * 4] / 10;
+    dwords[j] = dword;
+  }
+  result = false;
+  if ( dwords[4] + hash_div10[0] == dwords[2]
+    &amp;#x26;&amp;#x26; dwords[4] + hash_div10[0] + hash_div10[1] == 2 * dwords[4]
+    &amp;#x26;&amp;#x26; hash_div10[2] + dwords[3] == dwords[0]
+    &amp;#x26;&amp;#x26; hash_div10[2] + dwords[3] + hash_div10[3] == 2 * dwords[3] )
+  {
+    return hash_div10[4] + dwords[1] == 3 * hash_div10[2];
+  }
+  return result;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;解题脚本&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;import base64
+import struct
+
+name = &quot;testtest&quot;
+# code = &quot;MTExMTExMTExMTExMTExMTExMTE=&quot;
+name_size = len(name)
+hash = bytearray(20)
+
+for i in range(16):
+    old = int.from_bytes(hash[i : i + 4], &quot;little&quot;)
+    v7 = (ord(name[i % name_size]) * (i + 20160126) * name_size) &amp;#x26; 0xffffffff
+    hash[i : i + 4] = ((old + v7) &amp;#x26; 0xffffffff).to_bytes(4, &quot;little&quot;)
+
+# decoded = base64.b64decode(code)
+
+hash_div10 = [0] * 5
+dwords = [0] * 5
+
+def idiv(a, b):
+    a = (a &amp;#x26; 0xFFFFFFFF)
+    if a &gt;= 0x80000000:
+        a -= 0x100000000
+    return int(a / b)
+
+for i in range(5):
+    hash_div10[i] = idiv(int.from_bytes(hash[i * 4 : (i + 1) * 4], &quot;little&quot;), 10)
+    # dwords[i] = int.from_bytes(decoded[i * 4 : (i + 1) * 4], &quot;little&quot;)
+
+h0, h1, h2, h3, h4 = (i for i in hash_div10)
+# d0, d1, d2, d3, d4 = (i for i in dwords)
+d0, d1, d2, d3, d4 = 0, 0, 0, 0, 0
+
+d4 = (h0 + h1) &amp;#x26; 0xffffffff
+d3 = (h2 + h3) &amp;#x26; 0xffffffff
+d2 = (h0 + d4) &amp;#x26; 0xffffffff
+d1 = (3 * h2 - h4) &amp;#x26; 0xffffffff
+d0 = (h2 + d3) &amp;#x26; 0xffffffff
+raw = b&quot;&quot;.join(struct.pack(&quot;&amp;#x3C;I&quot;, value) for value in (d0, d1, d2, d3, d4))
+reg_code = base64.b64encode(raw).decode(&quot;utf-8&quot;)
+print(reg_code)
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;决赛题目&lt;/h2&gt;
+&lt;p&gt;题目有三个，1和3是尽可能多的实现反调试和检测Root的方式，这里只选择第二个KeyGenMe题目做分析了&lt;/p&gt;
+&lt;h3&gt;题目描述&lt;/h3&gt;
+&lt;p&gt;Tencent2016C是一个简单的注册程序，见附件，请写一个注册机，注册机的输入为设备ID字符串(界面内的二维码同设备ID字符串内容一致),输出为二维码形式的注册号。&lt;/p&gt;
+&lt;h3&gt;题目分析&lt;/h3&gt;
+&lt;p&gt;java层的逻辑为：扫描二维码后，将得到的 Base64 数据解码为 32 字节，使用硬编码的 RSA 公钥解密。&lt;/p&gt;
+&lt;p&gt;解密结果的前两个字节被解析为长度，随后提取对应长度的数据。调用 native 方法 &lt;code&gt;NativeCheckRegister&lt;/code&gt;，传入生成的 device_id 与提取出的 20 字节数据&lt;/p&gt;
+&lt;p&gt;因为长度要求为 20，所以解密后的前两个字节必然是 00 14&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;package com.tencent.tencent2016c;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v7.a.u;
+import android.telephony.TelephonyManager;
+import android.util.Base64;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import com.a.a.r;
+import java.lang.reflect.Field;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.UUID;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+/* JADX INFO: loaded from: classes.dex */
+public class MainActivity extends u {
+    AlertDialog.Builder j = null;
+
+    static {
+        System.loadLibrary(&quot;CheckRegister&quot;);
+    }
+
+    private Bitmap a(com.a.a.c.b bVar) {
+        int iE = bVar.e();
+        int iF = bVar.f();
+        int[] iArr = new int[iE * iF];
+        for (int i = 0; i &amp;#x3C; iE; i++) {
+            for (int i2 = 0; i2 &amp;#x3C; iF; i2++) {
+                int i3 = -1;
+                if (bVar.a(i, i2)) {
+                    i3 = -16777216;
+                }
+                iArr[(i2 * iE) + i] = i3;
+            }
+        }
+        Bitmap bitmapCreateBitmap = Bitmap.createBitmap(iE, iF, Bitmap.Config.RGB_565);
+        bitmapCreateBitmap.setPixels(iArr, 0, iE, 0, 0, iE, iF);
+        return bitmapCreateBitmap;
+    }
+
+    private static String a(Context context) {
+        if (context == null) {
+            return null;
+        }
+        try {
+            return Settings.Secure.getString(context.getContentResolver(), &quot;android_id&quot;);
+        } catch (Throwable th) {
+            return null;
+        }
+    }
+
+    private String a(String str) {
+        SharedPreferences sharedPreferences = getSharedPreferences(&quot;setting&quot;, 0);
+        if (sharedPreferences == null) {
+            return null;
+        }
+        return sharedPreferences.getString(str, null);
+    }
+
+    private void a(String str, String str2) {
+        SharedPreferences.Editor editorEdit = getSharedPreferences(&quot;setting&quot;, 0).edit();
+        editorEdit.putString(str, str2);
+        editorEdit.commit();
+    }
+
+    /* JADX INFO: renamed from: a */
+    private byte[] RSA_Decrypt(byte[] bArr, String str) {
+        PublicKey publicKeyGeneratePublic;
+        try {
+            publicKeyGeneratePublic = KeyFactory.getInstance(&quot;RSA&quot;).generatePublic(new X509EncodedKeySpec(Base64.decode(str, 0)));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            publicKeyGeneratePublic = null;
+        } catch (InvalidKeySpecException e2) {
+            e2.printStackTrace();
+            publicKeyGeneratePublic = null;
+        }
+        if (publicKeyGeneratePublic == null) {
+            return null;
+        }
+        try {
+            Cipher cipher = Cipher.getInstance(&quot;RSA/ECB/NoPadding&quot;);
+            cipher.init(2, publicKeyGeneratePublic);
+            return cipher.doFinal(bArr);
+        } catch (InvalidKeyException e3) {
+            e3.printStackTrace();
+            return null;
+        } catch (NoSuchAlgorithmException e4) {
+            e4.printStackTrace();
+            return null;
+        } catch (BadPaddingException e5) {
+            e5.printStackTrace();
+            return null;
+        } catch (IllegalBlockSizeException e6) {
+            e6.printStackTrace();
+            return null;
+        } catch (NoSuchPaddingException e7) {
+            e7.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String b(Context context) {
+        if (context == null) {
+            return null;
+        }
+        try {
+            return ((TelephonyManager) context.getSystemService(&quot;phone&quot;)).getDeviceId();
+        } catch (Throwable th) {
+            return null;
+        }
+    }
+
+    private static String b(String str) {
+        try {
+            byte[] bArrDigest = MessageDigest.getInstance(&quot;MD5&quot;).digest(str.getBytes());
+            StringBuffer stringBuffer = new StringBuffer();
+            for (byte b : bArrDigest) {
+                int i = b &amp;#x26; 255;
+                if (i &amp;#x3C; 16) {
+                    stringBuffer.append(0);
+                }
+                stringBuffer.append(Integer.toHexString(i));
+            }
+            return stringBuffer.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private Bitmap c(String str) {
+        try {
+            return a(new com.a.a.i.b().a(str, com.a.a.a.QR_CODE, 500, 500));
+        } catch (r e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /* JADX INFO: renamed from: c */
+    private String getDeviceID(Context context) {
+        String strB = b(context);
+        if (strB == null &amp;#x26;&amp;#x26; (strB = a(context)) == null) {
+            strB = j();
+        }
+        if (strB != null) {
+            String strB2 = b(strB);
+            return String.format(&quot;%s-%s-%s-%s-%s&quot;, strB2.substring(0, 8), strB2.substring(8, 12), strB2.substring(12, 16), strB2.substring(16, 20), strB2.substring(20, 32));
+        }
+        String strA = a(&quot;DEVUUID&quot;);
+        if (strA != null) {
+            return strA;
+        }
+        String strK = k();
+        a(&quot;DEVUUID&quot;, strK);
+        return strK;
+    }
+
+    /* JADX WARN: Code duplicated, block: B:11:0x0023 A[Catch: Throwable -&gt; 0x0031, TRY_LEAVE, TryCatch #0 {Throwable -&gt; 0x0031, blocks: (B:4:0x0007, B:5:0x000e, B:7:0x0011, B:9:0x001f, B:11:0x0023), top: B:17:0x0007 }] */
+    /* JADX WARN: Code duplicated, block: B:22:? A[RETURN, SYNTHETIC] */
+    private static String j() {
+        Field field;
+        if (Build.VERSION.SDK_INT &amp;#x3C;= 8) {
+            return null;
+        }
+        try {
+            Field[] fields = Build.class.getFields();
+            for (int i = 0; i &amp;#x3C; fields.length; i++) {
+                if (fields[i].getName().equals(&quot;SERIAL&quot;)) {
+                    field = fields[i];
+                    if (field != null) {
+                        return field.get(Build.class).toString();
+                    }
+                    return null;
+                }
+            }
+            field = null;
+            if (field != null) {
+                return field.get(Build.class).toString();
+            }
+            return null;
+        } catch (Throwable th) {
+            return null;
+        }
+    }
+
+    private static String k() {
+        return UUID.randomUUID().toString();
+    }
+
+    public native int NativeCheckRegister(String str, byte[] bArr);
+
+    @Override // android.support.v4.a.v, android.app.Activity
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        com.a.a.e.a.b bVarA = com.a.a.e.a.a.a(i, i2, intent);
+        if (bVarA == null) {
+            super.onActivityResult(i, i2, intent);
+            return;
+        }
+        if (bVarA.a() == null) {
+            return;
+        }
+        byte[] bArrDecode = Base64.decode(bVarA.a(), 0);
+        if (bArrDecode.length != 32) {
+            this.j.setMessage(&quot;Check Fail!&quot;);
+        } else {
+            byte[] dec = RSA_Decrypt(bArrDecode, &quot;MDwwDQYJKoZIhvcNAQEBBQADKwAwKAIhAMw8CJ6Azv7ak+y+AEJmen4UMMPkGQ5D2QBrG7vKcX6XAgMBAAE=&quot;);
+            int size = (dec[0] * 256) + dec[1];
+            byte[] bArr = new byte[size];
+            System.arraycopy(dec, 2, bArr, 0, size);
+            if (size == 20 &amp;#x26;&amp;#x26; 1 == NativeCheckRegister(getDeviceID(this), bArr)) {
+                this.j.setMessage(&quot;Check Success!&quot;);
+            } else {
+                this.j.setMessage(&quot;Check Fail!&quot;);
+            }
+        }
+        this.j.create().show();
+    }
+
+    @Override // android.support.v7.a.u, android.support.v4.a.v, android.support.v4.a.q, android.app.Activity
+    protected void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        setContentView(R.layout.activity_main);
+        this.j = new AlertDialog.Builder(this);
+        this.j.setMessage(&quot;Check Result&quot;);
+        this.j.setTitle(&quot;Check Result&quot;);
+        this.j.setPositiveButton(&quot;OK&quot;, new a(this));
+        ((Button) findViewById(R.id.btnScan)).setOnClickListener(new b(this));
+        ((TextView) findViewById(R.id.tvDevID)).setText(getDeviceID(this));
+        ((ImageView) findViewById(R.id.imgQrCode)).setImageBitmap(c(getDeviceID(this)));
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;native层的算法常量很清晰，也没有被魔改&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-c&quot;&gt;bool __fastcall check(char *device_id, const void *code)
+{
+  int v3; // r4
+  size_t device_id_size; // r0
+  uint8_t *sha1_data; // r5
+  size_t device_id_size_; // r0
+  _BYTE subkeys[272]; // [sp+14h] [bp-5D0h] BYREF
+  _DWORD des_key[2]; // [sp+124h] [bp-4C0h] BYREF
+  int v11; // [sp+12Ch] [bp-4B8h] BYREF
+  int v12; // [sp+130h] [bp-4B4h]
+  _QWORD data[2]; // [sp+134h] [bp-4B0h] BYREF
+  _QWORD aes_key[2]; // [sp+144h] [bp-4A0h] BYREF
+  uint8_t aes_state[16]; // [sp+154h] [bp-490h] BYREF
+  _DWORD expected[5]; // [sp+164h] [bp-480h] BYREF
+  _BYTE ctx[96]; // [sp+178h] [bp-46Ch] BYREF
+  _DWORD result[258]; // [sp+1DCh] [bp-408h] BYREF
+
+  v3 = 0;
+  if ( j_strlen(a1: device_id) - 6 &amp;#x3C;= 94 )
+  {
+    j_memset(a1: expected, a2: 0, a3: sizeof(expected));
+    j_memset(a1: ctx, a2: 0, a3: sizeof(ctx));
+    sha1_init(ctx);
+    device_id_size = j_strlen(a1: device_id);
+    sha1_update(ctx, data: device_id, size: device_id_size + 1);// 注意这里长度加了1,所以计算包含了末尾的\x00
+    sha1_data = sha1_final(ctx);
+    j_memset(a1: data, a2: 0, a3: sizeof(data));
+    j_memset(a1: aes_key, a2: 0, a3: sizeof(aes_key));
+    *data = *sha1_data;
+    *aes_key = *(sha1_data + 4);
+    j_memset(a1: aes_state, a2: 0, a3: sizeof(aes_state));
+    AES_Decrypt(data, key: aes_key, state: aes_state);// aes decrypt
+    qmemcpy(expected, aes_state, 16);
+    device_id_size_ = j_strlen(a1: device_id);
+    expected[4] = crc32(buf: device_id, size: device_id_size_);// 这里计算crc的时候不包含末尾\x00
+    j_memset(a1: result, a2: 0, a3: 0x400u);
+    j_memcpy(a1: result, a2: code, a3: 20u);
+    des_key[0] = 0x13235D3F;
+    des_key[1] = result[4];
+    j_memset(a1: subkeys, a2: 0, a3: sizeof(subkeys));
+    DES_KeySchedule(key: des_key, subkeys);
+    v11 = 0;
+    v12 = 0;
+    DES(input: result, output: &amp;#x26;v11, subkeys, a4: 0);// des decrypt
+    result[0] = v11;
+    result[1] = v12;
+    DES(input: &amp;#x26;result[2], output: &amp;#x26;v11, subkeys, a4: 0);
+    result[2] = v11;
+    result[3] = v12;
+    return j_memcmp(a1: result, a2: expected, a3: 20u) == 0;
+  }
+  return v3;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;大致逻辑为&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-c&quot;&gt;   aes_dec(sha1(device_id)[0:16], sha1(device_id)[4:20]) + crc32(device_id) 
+== des_dec(code[0:16], &quot;3F5D2313&quot; + crc32(device_id))  + crc32(device_id) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;解题&lt;/h3&gt;
+&lt;p&gt;java层的RSA用的是公钥解密
+$M=C^e\bmod n$&lt;/p&gt;
+&lt;p&gt;那么加密回去则需要用私钥
+$C=M^d\bmod n$&lt;/p&gt;
+&lt;p&gt;但公钥中只有 $n$ 和 $e$&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;import base64
+
+from Crypto.PublicKey import RSA
+
+pbk = &quot;MDwwDQYJKoZIhvcNAQEBBQADKwAwKAIhAMw8CJ6Azv7ak+y+AEJmen4UMMPkGQ5D2QBrG7vKcX6XAgMBAAE=&quot;
+
+key = RSA.import_key(base64.b64decode(pbk))
+n, e = key.n, key.e
+
+print(n, e)
+# 92377891422080520374820400579771977245937984366175935318313202287429727387287 65537
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;所以需要先分解$n$，得到$p$和$q$，直接查&lt;a href=&quot;http://www.factordb.com/index.php?query=92377891422080520374820400579771977245937984366175935318313202287429727387287&quot;&gt;factordb&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-c&quot;&gt;p = 298189805342220294696804713023137542429
+q = 309795605909672789868308887071174440003
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;然后计算得到$d$：
+$d=e^{-1}\bmod\varphi(n)$&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;from Crypto.Util.number import inverse
+
+p = 298189805342220294696804713023137542429
+q = 309795605909672789868308887071174440003
+
+n = p * q
+e = 65537
+
+phi = (p - 1) * (q - 1)
+
+d = inverse(e, phi)
+
+print(&quot;n =&quot;, n)
+print(&quot;e =&quot;, e)
+print(&quot;d =&quot;, d)
+# n = 92377891422080520374820400579771977245937984366175935318313202287429727387287
+# e = 65537
+# d = 14835547968588697635610185331981934792668236858577224232268773874821936419673
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;native层唯一需要注意的点就是计算sha1的时候，size是加了1的，所以包含末尾的00字节，会影响sha1的结果，而后面的crc不包含&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-c&quot;&gt;sha1_update(ctx, data: device_id, size: device_id_size + 1);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;我的真机不知道什么原因在IDA调试的时候app经常闪退，所以后面直接使用unidbg来调试&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;package com.tencent.tencent2016c;
+
+import com.github.unidbg.*;
+import com.github.unidbg.arm.backend.Unicorn2Factory;
+import com.github.unidbg.arm.context.RegisterContext;
+import com.github.unidbg.debugger.Debugger;
+import com.github.unidbg.hook.hookzz.HookEntryInfo;
+import com.github.unidbg.hook.hookzz.HookZz;
+import com.github.unidbg.hook.hookzz.WrapCallback;
+import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
+import com.github.unidbg.linux.android.AndroidResolver;
+import com.github.unidbg.linux.android.dvm.DalvikModule;
+import com.github.unidbg.linux.android.dvm.DvmClass;
+import com.github.unidbg.linux.android.dvm.VM;
+import com.github.unidbg.memory.Memory;
+import com.github.unidbg.pointer.UnidbgPointer;
+
+import java.io.*;
+
+public class MainActivity {
+    private final AndroidEmulator emulator;
+    private final VM vm;
+    private final Module module;
+    private final DvmClass ma;
+
+    MainActivity() {
+
+        emulator = AndroidEmulatorBuilder.for32Bit()
+                .setProcessName(&quot;com.tencent.tencent2016c&quot;)
+                .addBackendFactory(new Unicorn2Factory(true))
+                .build();
+
+        final Memory memory = emulator.getMemory();
+        memory.setLibraryResolver(new AndroidResolver(23));
+
+        vm = emulator.createDalvikVM();
+        vm.setVerbose(false);
+        DalvikModule dm = vm.loadLibrary(new File(&quot;unidbg-android/src/test/java/com/tencent/tencent2016c/libCheckRegister.so&quot;), false);
+        dm.callJNI_OnLoad(emulator);
+        module = dm.getModule();
+
+        ma = vm.resolveClass(&quot;com/tencent/tencent2016c/MainActivity&quot;);
+    }
+
+    private static String bytesToHex(byte[] data) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : data) {
+            sb.append(String.format(&quot;%02X &quot;, b));
+        }
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        MainActivity mainActivity = new MainActivity();
+        mainActivity.crack();
+    }
+
+    private void crack() {
+        String device_id = &quot;5dad0d73-5727-f5ba-a3ac-213fa9e2c00c&quot;;
+        byte[] data = {0, 20, 49, 49, 49, 49, 50, 50, 50, 50, 51, 51, 51, 51, 52, 52, 52, 52, 53, 53, 53, 53, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+        Module libc = emulator.getMemory().findModule(&quot;libc.so&quot;);
+        Symbol memcmp = libc.findSymbolByName(&quot;memcmp&quot;);
+        HookZz hookZz = HookZz.getInstance(emulator);
+        hookZz.wrap(memcmp, new WrapCallback&amp;#x3C;RegisterContext&gt;() {
+            @Override
+            public void preCall(Emulator&amp;#x3C;?&gt; emulator, RegisterContext ctx, HookEntryInfo info) {
+                UnidbgPointer s1 = ctx.getPointerArg(0);
+                UnidbgPointer s2 = ctx.getPointerArg(1);
+                int n = ctx.getIntArg(2);
+
+                System.out.println(&quot;========== memcmp ==========&quot;);
+                System.out.println(&quot;n  = &quot; + n);
+                System.out.println(&quot;result = &quot; + bytesToHex(s1.getByteArray(0, n)));
+                System.out.println(&quot;expected = &quot; + bytesToHex(s2.getByteArray(0, n)));
+            }
+
+            @Override
+            public void postCall(Emulator&amp;#x3C;?&gt; emulator, RegisterContext ctx, HookEntryInfo info) {
+                super.postCall(emulator, ctx, info);
+                int result = emulator.getContext().getIntArg(0);
+                System.out.println(&quot;memcmp returned: &quot; + result);
+            }
+        });
+        Debugger attach = emulator.attach();
+        // aes
+        attach.addBreakPoint(module.base + 0x1702 + 1);
+        // crc
+        attach.addBreakPoint(module.base + 0x171C + 1);
+        // des keySchedule
+        attach.addBreakPoint(module.base + 0x175E + 1);
+        // des
+        attach.addBreakPoint(module.base + 0x176E + 1);
+
+        int ret = module.callFunction(
+                emulator,
+                0x1661,
+                device_id,
+                data
+        ).intValue();
+
+        System.out.println(&quot;ret = &quot; + ret);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;keygen脚本&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;import base64
+import binascii
+import hashlib
+
+from Crypto.Cipher import AES, DES
+from Crypto.Util.number import inverse
+
+device_id = b&quot;5dad0d73-5727-f5ba-a3ac-213fa9e2c00c&quot;
+
+sha1_data = hashlib.sha1(device_id + b&quot;\x00&quot;).digest()
+
+aes_key = sha1_data[4:20]
+aes_data = AES.new(aes_key,AES.MODE_ECB).decrypt(sha1_data[:16])
+
+crc = binascii.crc32(device_id) &amp;#x26; 0xFFFFFFFF
+crc_bytes = crc.to_bytes(4, &quot;little&quot;)
+
+des_key = bytes.fromhex(&quot;3F5D2313&quot;) + crc_bytes
+des_data = DES.new(des_key,DES.MODE_ECB).encrypt(aes_data)
+
+code_data = des_data + crc_bytes
+
+# RSA
+p = 298189805342220294696804713023137542429
+q = 309795605909672789868308887071174440003
+
+n = p * q
+e = 65537
+phi = (p - 1) * (q - 1)
+d = inverse(e, phi)
+
+# 00 14 | 20 bytes code | 10 bytes padding
+block = b&quot;\x00\x14&quot; + code_data + b&quot;\x00&quot; * 10
+
+m = int.from_bytes(block, &quot;big&quot;)
+c = pow(m, d, n)
+
+code = base64.b64encode(c.to_bytes(32, &quot;big&quot;)).decode()
+
+print(code)
+&lt;/code&gt;&lt;/pre&gt;</content:encoded></item><item><title>Hello world</title><link>https://blog.yuro.work/blog/hello-world</link><guid isPermaLink="true">https://blog.yuro.work/blog/hello-world</guid><description>migrated my blog to Astro</description><pubDate>Thu, 21 May 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Migrated my blog to Astro and customized it based on the &lt;a href=&quot;https://github.com/cworld1/astro-theme-pure&quot;&gt;astro-theme-pure&lt;/a&gt; theme.&lt;/p&gt;</content:encoded><h:img src="https://blog.yuro.work/_astro/thumbnail.JmIzA770.jpg"/><enclosure url="https://blog.yuro.work/_astro/thumbnail.JmIzA770.jpg" length="0" type="image/jpeg"/></item></channel></rss>
