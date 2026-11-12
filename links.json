@@ -1,0 +1,100 @@
+{
+  "friends": [
+    {
+      "id_name": "friend-links",
+      "desc": "friends",
+      "link_list": [
+        {
+          "name": "luoingly",
+          "intro": "",
+          "link": "https://luoingly.top/",
+          "avatar": "https://luoingly.top/image/avatar.jpg"
+        },
+        {
+          "name": "LilRan",
+          "intro": "今日启程 无畏向前",
+          "link": "https://blog.xinshi.fun/",
+          "avatar": "https://blog.xinshi.fun/assets/avatar.png"
+        },
+        {
+          "name": "Liv",
+          "intro": "",
+          "link": "https://tkazer.github.io/",
+          "avatar": "https://tkazer.github.io/img/butterfly-icon.png"
+        },
+        {
+          "name": "nydn",
+          "intro": "可可爱爱就好~",
+          "link": "https://nyyyddddn.github.io/",
+          "avatar": "https://nyyyddddn.github.io/favicon.png"
+        },
+        {
+          "name": "clowncs",
+          "intro": ":P",
+          "link": "https://clowncs.github.io/",
+          "avatar": "https://clowncs.github.io/assets/logo.IYn4Ok72_Z1ruL8A.webp"
+        },
+        {
+          "name": "Showmaker",
+          "intro": "",
+          "link": "https://twogoat.github.io/",
+          "avatar": "https://avatars.githubusercontent.com/u/173450716?s=400&u=ccae31065054a3a4bf4d8766ed7d532442c26449&v=4"
+        },
+        {
+          "name": "Z3n1th",
+          "intro": "",
+          "link": "https://z3n1th1.com/",
+          "avatar": "https://z3n1th1.com/images/avatar.jpg"
+        },
+        {
+          "name": "C4skg",
+          "intro": "",
+          "link": "https://c4skg.github.io/",
+          "avatar": "https://c4skg.github.io/user/avatar.jpg"
+        },
+        {
+          "name": "rot-will",
+          "intro": "",
+          "link": "https://rot-will.github.io/",
+          "avatar": "https://rot-will.github.io/img/avatar.png"
+        },
+        {
+          "name": "dr0n",
+          "intro": "",
+          "link": "https://www.dr0n.top/",
+          "avatar": "https://www.dr0n.top/img/head.jpg"
+        }
+      ]
+    },
+    {
+      "id_name": "inactive-links",
+      "desc": "Inactive or rule-breaking friends",
+      "link_list": [
+        {
+          "name": "5m10v3",
+          "intro": "",
+          "link": "https://5m10v3.top/",
+          "avatar": "https://5m10v3.top/images/1.jpg"
+        }
+      ]
+    },
+    {
+      "id_name": "team-links",
+      "desc": "team",
+      "link_list": [
+        {
+          "name": "r3kapig",
+          "intro": "Give me a point, I can lift a flappy pig.",
+          "link": "https://r3kapig.com/",
+          "avatar": "https://r3kapig.com/assets/img/logo.png"
+        },
+        {
+          "name": "0xFFF",
+          "intro": "",
+          "link": "https://blog.0xfff.team/",
+          "avatar": "https://luoy.ing/images/links/0xfff.team.webp"
+        }
+      ]
+    }
+  ]
+}

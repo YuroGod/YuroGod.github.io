@@ -1,0 +1,9 @@
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: *
+Allow: /
+
+Sitemap: https://blog.yuro.work/sitemap-index.xml

